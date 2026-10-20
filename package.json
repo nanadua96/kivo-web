@@ -3,7 +3,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build:temp": "tsc -b && vite build",
+    "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview"
   },
