@@ -75,6 +75,10 @@
   }
 }
 
+.sidebar-btn2.selected {
+  background-color: whitesmoke !important;
+}
+
 .btn-icon {
   font-size: var(--20px);
 }
@@ -172,7 +176,7 @@ main {
   align-items: center;
   gap: var(--8px);
   width: 85%;
-  box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.15);
 
   /* @media (max-width: 1366px) {
     background-color: red;

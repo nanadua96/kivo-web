@@ -2,9 +2,10 @@
 
 - Responsive on mobile
 - Reactoring
+- Add Tests
 - Dark mode
 - Add form hook,
-- auth pages and
+- auth pages and profile settings modal
 - routing with Tanstack Start
 - Chat streaming
 - Glow aninmation on chat input
@@ -16,3 +17,4 @@
 - Setting modal (Edit name, profile picture, email & password)
 - Forgot password flow
 - Verify email
+- Next js or Tanstack start/ NestJs api

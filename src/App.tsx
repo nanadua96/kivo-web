@@ -2,16 +2,21 @@ import { useRef, useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
+import { init } from '@paralleldrive/cuid2';
 
 import 'highlight.js/styles/github-dark.css';
 import './App.css';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-console.log(BASE_URL);
+const createId = init({ length: 24 });
 
 function App() {
   const inputRef = useRef(null);
+
+  const [guestSessionId, setGuestSessionId] = useState(createId());
+
+  console.log('Guest session ID:', guestSessionId);
 
   const [messages, setMessages] = useState([]);
   const [isPending, setIsPending] = useState(false);
@@ -20,7 +25,6 @@ function App() {
   const [chatId, setChatId] = useState('new');
   const [chats, setChats] = useState([]);
 
-  // Authentication modal state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [authMode, setAuthMode] = useState(null);
@@ -33,7 +37,7 @@ function App() {
   useEffect(() => {
     async function getAuthStatus() {
       try {
-        const res = await fetch(BASE_URL + '/me', {
+        const res = await fetch(BASE_URL + '/api/me', {
           credentials: 'include',
         });
 
@@ -108,9 +112,7 @@ function App() {
     setAuthForm({ name: '', email: '', password: '' });
   };
 
-  const closeAuthModal = () => {
-    setAuthMode(null);
-  };
+  const closeAuthModal = () => setAuthMode(null);
 
   const handleAuthChange = (event) => {
     const { name, value } = event.target;
@@ -140,16 +142,17 @@ function App() {
     } finally {
     }
   }
+
   async function handleAuthSubmit(event) {
     event.preventDefault();
 
-    // Add your signup/login fetch call here.
     const payload =
       authMode === 'signup'
-        ? authForm
+        ? { ...authForm, guestSessionId }
         : {
             email: authForm.email,
             password: authForm.password,
+            guestSessionId,
           };
 
     const url =
@@ -172,7 +175,8 @@ function App() {
       }
 
       setIsAuthenticated(true);
-      console.log('Auth success');
+      closeAuthModal();
+      // console.log('Auth success');
     } catch (err) {
       // setError(true);
       console.error(err);
@@ -203,6 +207,7 @@ function App() {
         chatId,
         model: 'gemini-3.5-flash-lite',
         message: inputValue,
+        guestSessionId,
       };
 
       const response = await fetch(BASE_URL + '/api/chats', {
@@ -223,9 +228,13 @@ function App() {
 
       setMessages((prev) => [...prev, data]);
 
-      if (chatId === 'new') {
-        setChatId(data._id);
-        setChats((prev) => [...prev, { _id: data._id, title: data.title }]);
+      if (chatId === 'new') setChatId(data.chatId);
+
+      if (chatId === 'new' && isAuthenticated) {
+        const newConversation = { _id: data._id, title: data.title };
+        const oldConversations = [...chats];
+        oldConversations.unshift(newConversation);
+        setChats(oldConversations);
       }
 
       inputRef.current.value = '';
@@ -237,9 +246,62 @@ function App() {
     }
   };
 
+  const [showClearModal, setShowClearModal] = useState(false);
+
   async function handleNewChat() {
+    if (!isAuthenticated && messages.length) {
+      setShowClearModal(true);
+      return;
+    }
+
+    resetChat();
+  }
+
+  async function resetChat() {
     setChatId('new');
     setMessages([]);
+  }
+
+  async function handleClearChat() {
+    // resetChat();
+    // setShowClearModal(false);
+
+    try {
+      // console.log(chatId);
+      // console.log(
+      //   `${BASE_URL}/api/chats/${chatId}?guestSessionId=${guestSessionId}`,
+      // );
+
+      const response = await fetch(
+        `${BASE_URL}/api/chats/${chatId}?guestSessionId=${guestSessionId}`,
+        {
+          method: 'DELETE',
+          credentials: 'include',
+        },
+      );
+
+      if (!response.ok) {
+        // const data = await response.json();
+        // console.log('ERROR DELETEING CONVERSATION', data);
+        throw new Error('Failed to delete conversation');
+      }
+
+      // Set a
+      const newGuestSessionId = createId();
+      setGuestSessionId(newGuestSessionId);
+
+      resetChat();
+      setShowClearModal(false);
+    } catch (err) {
+      // setError(true);
+      console.error(err);
+    } finally {
+      // setIsPending(false);
+    }
+  }
+
+  async function handleCancelClearChat() {
+    setShowClearModal(false);
   }
 
   async function handleChat(id: string) {
@@ -382,7 +444,7 @@ function App() {
           </button>
         </div>
 
-        {chats.length > 0 && (
+        {chats.length > 0 && isAuthenticated && (
           <div className="sidebar-row sidebar-row-3">
             <p>Recent</p>
             {chats.map((c) => {
@@ -390,7 +452,9 @@ function App() {
                 <button
                   key={c._id}
                   onClick={() => handleChat(c._id)}
-                  className="sidebar-btn2"
+                  className={
+                    chatId === c._id ? 'sidebar-btn2 selected' : 'sidebar-btn2'
+                  }
                 >
                   {c.title}
                 </button>
@@ -413,7 +477,7 @@ function App() {
         <nav style={{ display: 'flex', gap: '10px' }}>
           {isAuthenticated ? (
             // <p>authed</p>
-            <p style={{ color: 'white' }}>{user.name}</p>
+            <p style={{ color: 'white' }}>{user?.name}</p>
           ) : (
             <>
               <button
@@ -463,9 +527,12 @@ function App() {
           })}
 
           {error && (
-            <p style={{ color: 'red' }}>
-              Error sending message. Please try again.
-            </p>
+            <div>
+              <p style={{ color: 'red' }}>
+                Error sending message. Please try again.
+              </p>
+              <button onClick={handleSubmit}>Retry</button>
+            </div>
           )}
 
           {isPending && (
@@ -526,6 +593,99 @@ function App() {
           </form>
         </div>
       </main>
+
+      {/* CLEAR MODAL */}
+      {showClearModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: '16px',
+              padding: '24px',
+              width: '100%',
+              maxWidth: '400px',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)',
+              fontFamily: 'Arial, sans-serif',
+            }}
+          >
+            <h2
+              style={{
+                fontSize: '20px',
+                fontWeight: 600,
+                color: '#111827',
+                margin: '0 0 12px',
+              }}
+            >
+              Clearing chat?
+            </h2>
+
+            <p
+              style={{
+                fontSize: '14px',
+                lineHeight: 1.6,
+                color: '#6b7280',
+                margin: '0 0 24px',
+              }}
+            >
+              Are you sure you want to clear this chat? This action cannot be
+              undone.
+            </p>
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '12px',
+              }}
+            >
+              <button
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '8px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: '#fff',
+                  color: '#374151',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+                onClick={handleCancelClearChat}
+                type="button"
+              >
+                Cancel
+              </button>
+
+              <button
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: '#dc2626',
+                  color: '#fff',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+                onClick={handleClearChat}
+                type="button"
+              >
+                Yes, clear chat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* AUTH MODAL */}
       {authMode && (
