@@ -29,19 +29,27 @@ html {
   /* font-size: 62.5%; */
 }
 
+html,
 body {
   font-family: 'Inter', sans-serif;
   font-size: var(--16px);
-  width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  display: flex;
+  /* width: 100%; */
+  /* height: 100vh; */
+  /* height: 100dvh; */
+  /* display: flex; */
   /* background-color: #f8f7f7; */ /* VAR THIS - --bg-primary */
   background-color: var(--bg-primary);
+
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevent body-level scroll if you want an app-like feel */
 }
 
 #root {
   display: flex;
-  height: 100%;
+  /* height: 100%; */
   flex: 1;
+  height: 100vh;
+  height: 100dvh;
 }

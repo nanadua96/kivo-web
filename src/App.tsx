@@ -455,6 +455,11 @@ function App() {
     openAuthModal('login');
   }
 
+  function handleMobileNewChat() {
+    closeMenu();
+    handleNewChat();
+  }
+
   ////////////////////////////////////////////////////////! HAMBURGER CODE
 
   return (
@@ -578,7 +583,7 @@ function App() {
                 <button
                   className="hm-chat-button"
                   type="button"
-                  onClick={closeMenu}
+                  onClick={handleMobileNewChat}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
