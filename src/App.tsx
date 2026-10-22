@@ -305,7 +305,9 @@ function App() {
   }
 
   async function handleChat(id: string) {
-    console.log('Chat id', id);
+    closeMenu();
+
+    // console.log('Chat id', id);
     setChatId(id);
 
     try {
@@ -401,9 +403,12 @@ function App() {
       borderRadius: '8px',
       backgroundColor: '#fff',
       color: '#171717',
-      fontSize: '15px',
+      fontSize: '16px',
       fontWeight: 600,
       cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     switchText: {
       marginTop: '22px',
@@ -421,13 +426,44 @@ function App() {
     },
   };
 
+  ////////////////////////////////////////////////////////! HAMBURGER CODE
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setIsOpen(false);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
+  function closeMenu() {
+    setIsOpen(false);
+  }
+
+  function handleMobilLogin() {
+    closeMenu();
+    openAuthModal('login');
+  }
+
+  ////////////////////////////////////////////////////////! HAMBURGER CODE
+
   return (
     <>
       {/* SIDEBAR */}
       <header className="sidebar">
-        <div style={{ padding: '8px' }}>
-          <p className="logo">Kivo</p>
-        </div>
+        <a href="/" className="logo">
+          Kivo
+        </a>
 
         <div className="sidebar-row-2">
           <button onClick={handleNewChat} className="sidebar-btn">
@@ -472,26 +508,146 @@ function App() {
         )}
       </header>
 
+      {/* MOBILE NAV */}
+      <>
+        {isOpen && (
+          <div className="hm-backdrop" onMouseDown={closeMenu}>
+            <aside
+              className="hm-drawer"
+              id="hm-drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Main menu"
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <div className="hm-drawer__content">
+                <header className="hm-header">
+                  <a className="logo" href="#home" onClick={closeMenu}>
+                    Kivo
+                  </a>
+                </header>
+
+                {chats.length > 0 && isAuthenticated ? (
+                  <div className="sidebar-mobile sidebar-row sidebar-row-3">
+                    <p>Recent</p>
+                    {chats.map((c) => {
+                      return (
+                        <button
+                          key={c._id}
+                          onClick={() => handleChat(c._id)}
+                          className={
+                            chatId === c._id
+                              ? 'sidebar-btn2 selected'
+                              : 'sidebar-btn2'
+                          }
+                        >
+                          {c.title}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <section className="hm-login-prompt">
+                    <h2>Make Kivo more personal</h2>
+                    <p>
+                      Log in to save your chats and get answers based on saved
+                      chats.
+                    </p>
+                    <a
+                      className="hm-login-button"
+                      href="#login"
+                      onClick={handleMobilLogin}
+                    >
+                      Log in
+                    </a>
+                  </section>
+                )}
+
+                {isAuthenticated && (
+                  <section className="waakye">
+                    <div className="sidebar-row sidebar-row-4">
+                      <button onClick={handleLogout} className="sidebar-btn2">
+                        Logout
+                      </button>
+                    </div>
+                  </section>
+                )}
+              </div>
+
+              <footer className="hm-footer">
+                <button
+                  className="hm-chat-button"
+                  type="button"
+                  onClick={closeMenu}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="24px"
+                    viewBox="0 -960 960 960"
+                    width="24px"
+                    fill="#1f1f1f"
+                  >
+                    <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Zm481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z" />
+                  </svg>
+                  New Chat
+                </button>
+              </footer>
+            </aside>
+          </div>
+        )}
+      </>
+
       {/* MAIN CHAT */}
       <main className={messages.length === 0 ? 'chat empty' : 'chat'}>
-        <nav style={{ display: 'flex', gap: '10px' }}>
+        <nav className={isAuthenticated ? 'nav no-auth' : 'nav'}>
           {isAuthenticated ? (
-            // <p>authed</p>
-            <p style={{ color: 'white' }}>{user?.name}</p>
+            <button
+              // onClick={() => openAuthModal('signup')}
+              className="hamburger-button"
+              onClick={() => setIsOpen(true)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#1f1f1f"
+              >
+                <path d="M160-240q-17 0-28.5-11.5T120-280q0-17 11.5-28.5T160-320h640q17 0 28.5 11.5T840-280q0 17-11.5 28.5T800-240H160Zm0-200q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h640q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440H160Zm0-200q-17 0-28.5-11.5T120-680q0-17 11.5-28.5T160-720h640q17 0 28.5 11.5T840-680q0 17-11.5 28.5T800-640H160Z" />
+              </svg>
+            </button>
           ) : (
             <>
               <button
-                onClick={() => openAuthModal('signup')}
-                className="btn-base btn-outline"
+                // onClick={() => openAuthModal('signup')}
+                className="hamburger-button"
+                onClick={() => setIsOpen(true)}
               >
-                Sign up
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="24px"
+                  viewBox="0 -960 960 960"
+                  width="24px"
+                  fill="#1f1f1f"
+                >
+                  <path d="M160-240q-17 0-28.5-11.5T120-280q0-17 11.5-28.5T160-320h640q17 0 28.5 11.5T840-280q0 17-11.5 28.5T800-240H160Zm0-200q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h640q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440H160Zm0-200q-17 0-28.5-11.5T120-680q0-17 11.5-28.5T160-720h640q17 0 28.5 11.5T840-680q0 17-11.5 28.5T800-640H160Z" />
+                </svg>
               </button>
-              <button
-                onClick={() => openAuthModal('login')}
-                className="btn-base btn-solid"
-              >
-                Login
-              </button>
+
+              <div className="nav-button-group">
+                <button
+                  onClick={() => openAuthModal('signup')}
+                  className="btn-base btn-outline"
+                >
+                  Sign up
+                </button>
+                <button
+                  onClick={() => openAuthModal('login')}
+                  className="btn-base btn-solid"
+                >
+                  Login
+                </button>
+              </div>
             </>
           )}
         </nav>
