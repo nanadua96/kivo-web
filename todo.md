@@ -18,3 +18,4 @@
 - Forgot password flow
 - Verify email
 - Next js or Tanstack start/ NestJs api
+- Copying, editing and deleting a prompt

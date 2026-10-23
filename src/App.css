@@ -102,14 +102,26 @@
   /* flex-grow: 2; */
   /* width: 88%; */
   width: 80%;
-
+  height: 100%;
   /* flex-grow: 1; */
   /* max-width: 96rem; */
 
   display: grid;
   grid-template-rows: auto 1fr auto;
-  height: 100vh;
+  /* height: 100vh; */
   overflow: hidden;
+  min-height: 0;
+
+  /* @media (max-width: 1444px) {
+    width: 70%;
+  } */
+
+  @media (max-width: 1024px) {
+    .chat {
+      width: 100%; /* Take full width when sidebar is hidden */
+      flex-grow: 1;
+    }
+  }
 }
 
 nav {
@@ -159,13 +171,14 @@ main {
 }
 
 .input {
-  flex: 1;
+  flex-grow: 1;
   padding: var(--8px) var(--16px);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter';
   font-size: var(--16px);
   /* padding: 16px;
   border-radius: 99rem; */
   border: 0;
+  /* background-color: #315efb; */
 
   &:focus-visible {
     /* background-color: red; */
@@ -586,8 +599,8 @@ button {
   }
 }
 
-
-ul, ol {
+ul,
+ol {
   padding-left: 1.5rem;
   list-style-position: inside;
 }
