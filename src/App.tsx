@@ -6,6 +6,7 @@ import { init } from '@paralleldrive/cuid2';
 
 import 'highlight.js/styles/github-dark.css';
 import './App.css';
+import { ChatPopover } from './ChatPopover';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -462,6 +463,32 @@ function App() {
 
   ////////////////////////////////////////////////////////! HAMBURGER CODE
 
+  function handleTogglePin() {
+    console.log('Toggling pin...');
+  }
+
+  function handleMoreOptions() {
+    console.log('Showing more options');
+  }
+
+  //////////////////////////////////////////////////////! RENAME MODAL
+
+  const [showModal, setShowModal] = useState(false);
+  const [title, setTitle] = useState('My conversation');
+
+  const handleSave = () => {
+    const trimmedTitle = title.trim();
+
+    if (!trimmedTitle) return;
+
+    onSave?.(trimmedTitle);
+    onClose?.();
+  };
+
+  function handleCloseRenameModal() {
+    setShowModal(false);
+  }
+
   return (
     <>
       {/* SIDEBAR */}
@@ -488,17 +515,81 @@ function App() {
         {chats.length > 0 && isAuthenticated && (
           <div className="sidebar-row sidebar-row-3">
             <p>Recent</p>
+
             {chats.map((c) => {
               return (
-                <button
+                <div
                   key={c._id}
-                  onClick={() => handleChat(c._id)}
+                  // onClick={() => handleChat(c._id)}
+                  onKeyDown={(e) => {
+                    // Only handle keyboard events on the parent itself
+                    if (e.target !== e.currentTarget) return;
+
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleChat(c._id);
+                    }
+                  }}
+                  // onKeyDown={(e) => {
+                  //   if (e.key === 'Enter' || e.key === ' ') {
+                  //     e.preventDefault();
+                  //     handleChat(c._id);
+                  //   }
+                  // }}
                   className={
                     chatId === c._id ? 'sidebar-btn2 selected' : 'sidebar-btn2'
                   }
                 >
-                  {c.title}
-                </button>
+                  <button
+                    type="button"
+                    className="sidebar-chat-title"
+                    onClick={() => handleChat(c._id)}
+                  >
+                    {c.title}
+                  </button>
+                  {/* {c.title} */}
+
+                  <div className="sidebar-btn-group">
+                    {/* <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTogglePin();
+                      }}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        height="24px"
+                        viewBox="0 -960 960 960"
+                        width="24px"
+                        fill="#1f1f1f"
+                      >
+                        <path d="M240-400q-33 0-56.5-23.5T160-480q0-33 23.5-56.5T240-560q33 0 56.5 23.5T320-480q0 33-23.5 56.5T240-400Zm240 0q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm240 0q-33 0-56.5-23.5T640-480q0-33 23.5-56.5T720-560q33 0 56.5 23.5T800-480q0 33-23.5 56.5T720-400Z" />
+                      </svg>
+                    </button> */}
+                    <ChatPopover
+                      // isPinned={c.isPinned}
+                      // onRename={() => handleRename(c._id)}
+                      onPin={() => handleTogglePin(c._id)}
+                      // onDelete={() => handleDelete(c._id)}
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMoreOptions();
+                      }}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        height="24px"
+                        viewBox="0 -960 960 960"
+                        width="24px"
+                        fill="#1f1f1f"
+                      >
+                        <path d="M640-760v280l68 68q6 6 9 13.5t3 15.5v23q0 17-11.5 28.5T680-320H520v234q0 17-11.5 28.5T480-46q-17 0-28.5-11.5T440-86v-234H280q-17 0-28.5-11.5T240-360v-23q0-8 3-15.5t9-13.5l68-68v-280q-17 0-28.5-11.5T280-800q0-17 11.5-28.5T320-840h320q17 0 28.5 11.5T680-800q0 17-11.5 28.5T640-760ZM354-400h252l-46-46v-314H400v314l-46 46Zm126 0Z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -512,7 +603,6 @@ function App() {
           </div>
         )}
       </header>
-
       {/* MOBILE NAV */}
       <>
         {isOpen && (
@@ -601,7 +691,128 @@ function App() {
           </div>
         )}
       </>
+      {/* //! RENAME MODAL */}{' '}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 20,
+          zIndex: 1000,
+        }}
+        onClick={handleCloseRenameModal}
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="rename-title"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: '100%',
+            maxWidth: 400,
+            backgroundColor: '#ffffff',
+            borderRadius: 16,
+            padding: 24,
+            boxSizing: 'border-box',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
+          }}
+        >
+          <h2
+            id="rename-title"
+            style={{
+              fontSize: 20,
+              fontWeight: 600,
+              color: '#111827',
+              margin: '0 0 8px',
+            }}
+          >
+            Rename title
+          </h2>
 
+          <p
+            style={{
+              fontSize: 14,
+              color: '#6b7280',
+              margin: '0 0 20px',
+              lineHeight: 1.5,
+            }}
+          >
+            Enter a new title for this conversation.
+          </p>
+
+          <input
+            autoFocus
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSave();
+              if (e.key === 'Escape') onClose?.();
+            }}
+            placeholder="Enter title"
+            maxLength={100}
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              fontSize: 15,
+              color: '#111827',
+              backgroundColor: '#ffffff',
+              border: '1px solid #d1d5db',
+              borderRadius: 10,
+              outline: 'none',
+              boxSizing: 'border-box',
+              marginBottom: 24,
+            }}
+          />
+
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 10,
+            }}
+          >
+            <button
+              type="button"
+              onClick={handleCloseRenameModal}
+              style={{
+                padding: '10px 18px',
+                border: '1px solid #d1d5db',
+                borderRadius: 10,
+                backgroundColor: '#ffffff',
+                color: '#374151',
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!title.trim()}
+              style={{
+                padding: '10px 20px',
+                border: 'none',
+                borderRadius: 10,
+                backgroundColor: title.trim() ? '#111827' : '#9ca3af',
+                color: '#ffffff',
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: title.trim() ? 'pointer' : 'not-allowed',
+              }}
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+      {/* //! RENAME MODAL */}
       {/* MAIN CHAT */}
       <main className={messages.length === 0 ? 'chat empty' : 'chat'}>
         <nav className={isAuthenticated ? 'nav no-auth' : 'nav'}>
@@ -754,7 +965,6 @@ function App() {
           </form>
         </div>
       </main>
-
       {/* CLEAR MODAL */}
       {showClearModal && (
         <div
@@ -847,7 +1057,6 @@ function App() {
           </div>
         </div>
       )}
-
       {/* AUTH MODAL */}
       {authMode && (
         <div

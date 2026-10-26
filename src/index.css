@@ -25,11 +25,6 @@
   --radius-large: calc(999rem / 16);
 }
 
-html {
-  /* font-size: 62.5%; */
-}
-
-html,
 body {
   font-family: 'Inter', sans-serif;
   font-size: var(--16px);
@@ -38,9 +33,11 @@ body {
   /* height: 100dvh; */
   /* display: flex; */
   /* background-color: #f8f7f7; */ /* VAR THIS - --bg-primary */
-  background-color: var(--bg-primary);
+  /* background-color: var(--bg-primary); */
 
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   margin: 0;
   padding: 0;
   overflow: hidden; /* Prevent body-level scroll if you want an app-like feel */
@@ -48,8 +45,9 @@ body {
 
 #root {
   display: flex;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
+  /* width: 100vw; */
+  /* height: 100vh;
+  height: 100dvh; */
+  height: 100%;
   overflow: hidden;
 }
