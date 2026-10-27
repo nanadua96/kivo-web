@@ -462,9 +462,56 @@ function App() {
   }
 
   ////////////////////////////////////////////////////////! HAMBURGER CODE
+  const [pinnedChats, setPinnedChats] = useState([]);
 
-  function handleTogglePin() {
-    console.log('Toggling pin...');
+  async function handleTogglePin(item) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/chats/${item._id}/pin`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to pin conversation');
+      }
+
+      const data = await response.json();
+
+      console.log(data);
+
+      if (data.pinned) {
+        setChats((prev) => {
+          return prev.filter((i) => i._id !== item._id);
+        });
+
+        setPinnedChats((prev) => {
+          return [...prev, item];
+        });
+      } else {
+        setPinnedChats((prev) => {
+          return prev.filter((i) => i._id !== item._id);
+        });
+
+        setChats((prev) => {
+          return [...prev, item];
+        });
+      }
+
+      // console.log(item);
+
+      // setChats((prev) => {
+      //   return prev.filter((i) => i._id !== item._id);
+      // });
+
+      // setPinnedChats((prev) => {
+      //   return [...prev, item];
+      // });
+    } catch (err) {
+      // setError(true);
+      console.error(err);
+    } finally {
+      // setIsPending(false);
+    }
   }
 
   function handleMoreOptions() {
@@ -474,83 +521,309 @@ function App() {
   //////////////////////////////////////////////////////! RENAME MODAL
 
   const [showModal, setShowModal] = useState(false);
-  const [title, setTitle] = useState('My conversation');
+  const [title, setTitle] = useState('');
+  const [currentRenameId, setCurrentRenameId] = useState('');
 
-  const handleSave = () => {
-    const trimmedTitle = title.trim();
+  async function handleSave() {
+    console.log({ title, currentRenameId });
 
-    if (!trimmedTitle) return;
+    try {
+      // console.log(chatId);
+      // console.log(
+      //   `${BASE_URL}/api/chats/${chatId}?guestSessionId=${guestSessionId}`,
+      // );
 
-    onSave?.(trimmedTitle);
-    onClose?.();
-  };
+      const response = await fetch(
+        `${BASE_URL}/api/chats/${currentRenameId}/rename`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          body: JSON.stringify({
+            title,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to renaming conversation');
+      }
+
+      setChats((prev) => {
+        return prev.map((i) => {
+          if (i._id === currentRenameId) return { ...i, title };
+          return i;
+        });
+      });
+
+      setTitle('');
+      setCurrentRenameId('');
+
+      handleCloseRenameModal();
+    } catch (err) {
+      // setError(true);
+      console.error(err);
+    } finally {
+      // setIsPending(false);
+    }
+  }
+
+  function handleOpenRenameModal(chatId1: string, title1: string) {
+    console.log({ title: title1, currentRenameId: chatId1 });
+
+    setTitle(title1);
+    setCurrentRenameId(chatId1);
+    setShowModal(true);
+  }
 
   function handleCloseRenameModal() {
+    console.log('Modal closed!');
+
     setShowModal(false);
+  }
+
+  //////////////////////////////////////////////////////! SIDEBAR BUTTONS
+  async function handleDeleteChat(chatId: string) {
+    try {
+      // console.log(chatId);
+      // console.log(
+      //   `${BASE_URL}/api/chats/${chatId}?guestSessionId=${guestSessionId}`,
+      // );
+
+      const response = await fetch(`${BASE_URL}/api/chats/${chatId}/`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        // const data = await response.json();
+        // console.log('ERROR DELETEING CONVERSATION', data);
+        throw new Error('Failed to delete conversation');
+      }
+
+      setChats((prev) => {
+        return prev.filter((i) => i._id !== chatId);
+      });
+    } catch (err) {
+      // setError(true);
+      console.error(err);
+    } finally {
+      // setIsPending(false);
+    }
+  }
+
+  ///?! PINED
+
+  async function fetchPinnedChats() {
+    try {
+      // console.log(chatId);
+      // console.log(
+      //   `${BASE_URL}/api/chats/${chatId}?guestSessionId=${guestSessionId}`,
+      // );
+
+      const response = await fetch(`${BASE_URL}/api/chats/pinned`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to getting pinned conversation');
+      }
+
+      const data = await response.json();
+      setPinnedChats(data);
+    } catch (err) {
+      // setError(true);
+      console.error(err);
+    } finally {
+      // setIsPending(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchPinnedChats();
+  }, []);
+
+  const [sidebar, setSidebar] = useState('expand');
+
+  function handleToggleSidebar() {
+    console.log('Expanding/collapsing sidebar...');
+  }
+
+  function handleExpandidebar() {
+    setSidebar('expand');
+  }
+
+  function handleCollapseSidebar() {
+    setSidebar('collapse');
+  }
+
+  function handleSearch() {
+    console.log('Searching...');
   }
 
   return (
     <>
       {/* SIDEBAR */}
-      <header className="sidebar">
-        <a href="/" className="logo">
-          Kivo
-        </a>
-
-        <div className="sidebar-row-2">
-          <button onClick={handleNewChat} className="sidebar-btn">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="24px"
-              viewBox="0 -960 960 960"
-              width="24px"
-              fill="#1f1f1f"
-            >
-              <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Zm481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z" />
-            </svg>
-            <span>New chat</span>
-          </button>
-        </div>
-
-        {chats.length > 0 && isAuthenticated && (
-          <div className="sidebar-row sidebar-row-3">
-            <p>Recent</p>
-
-            {chats.map((c) => {
-              return (
-                <div
-                  key={c._id}
-                  // onClick={() => handleChat(c._id)}
-                  onKeyDown={(e) => {
-                    // Only handle keyboard events on the parent itself
-                    if (e.target !== e.currentTarget) return;
-
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleChat(c._id);
-                    }
-                  }}
-                  // onKeyDown={(e) => {
-                  //   if (e.key === 'Enter' || e.key === ' ') {
-                  //     e.preventDefault();
-                  //     handleChat(c._id);
-                  //   }
-                  // }}
-                  className={
-                    chatId === c._id ? 'sidebar-btn2 selected' : 'sidebar-btn2'
-                  }
+      {sidebar === 'expand' && (
+        <header className="sidebar">
+          <div className="sidebar-header">
+            <a href="/" className="logo">
+              Kivo
+            </a>
+            <div className="sidebar-header__group">
+              <button onClick={handleSearch} className="sidebar-btn">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="24px"
+                  viewBox="0 -960 960 960"
+                  width="24px"
+                  fill="#1f1f1f"
                 >
-                  <button
-                    type="button"
-                    className="sidebar-chat-title"
-                    onClick={() => handleChat(c._id)}
-                  >
-                    {c.title}
-                  </button>
-                  {/* {c.title} */}
+                  <path d="M380-320q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l224 224q11 11 11 28t-11 28q-11 11-28 11t-28-11L532-372q-30 24-69 38t-83 14Zm0-80q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z" />
+                </svg>
+              </button>
+              <button onClick={handleCollapseSidebar} className="sidebar-btn">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="24px"
+                  viewBox="0 -960 960 960"
+                  width="24px"
+                  fill="#1f1f1f"
+                >
+                  <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm280-80h280v-560H480v560Z" />
+                </svg>
+              </button>
+            </div>
+          </div>
 
-                  <div className="sidebar-btn-group">
-                    {/* <button
+          <div className="sidebar-row-2">
+            <button onClick={handleNewChat} className="sidebar-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#1f1f1f"
+              >
+                <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Zm481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z" />
+              </svg>
+              <span>New chat</span>
+            </button>
+          </div>
+
+          {pinnedChats.length > 0 && isAuthenticated && (
+            <div className="sidebar-row sidebar-row-3">
+              <p>Pinned</p>
+
+              {pinnedChats.map((c) => {
+                return (
+                  <div
+                    key={c._id}
+                    // onClick={() => handleChat(c._id)}
+                    onKeyDown={(e) => {
+                      // Only handle keyboard events on the parent itself
+                      if (e.target !== e.currentTarget) return;
+
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleChat(c._id);
+                      }
+                    }}
+                    // onKeyDown={(e) => {
+                    //   if (e.key === 'Enter' || e.key === ' ') {
+                    //     e.preventDefault();
+                    //     handleChat(c._id);
+                    //   }
+                    // }}
+                    className={
+                      chatId === c._id
+                        ? 'sidebar-btn2 selected'
+                        : 'sidebar-btn2'
+                    }
+                  >
+                    <button
+                      type="button"
+                      className="sidebar-chat-title"
+                      onClick={() => handleChat(c._id)}
+                    >
+                      {c.title}
+                    </button>
+                    {/* {c.title} */}
+
+                    <div className="sidebar-btn-group">
+                      <ChatPopover
+                        // isPinned={c.isPinned}
+                        onRename={() => handleOpenRenameModal(c._id, c.title)}
+                        onPin={() => handleTogglePin(c._id)}
+                        onDelete={() => handleDeleteChat(c._id)}
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTogglePin(c);
+                        }}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          height="24px"
+                          viewBox="0 -960 960 960"
+                          width="24px"
+                          fill="#1f1f1f"
+                        >
+                          <path d="M640-760v280l68 68q6 6 9 13.5t3 15.5v23q0 17-11.5 28.5T680-320H520v234q0 17-11.5 28.5T480-46q-17 0-28.5-11.5T440-86v-234H280q-17 0-28.5-11.5T240-360v-23q0-8 3-15.5t9-13.5l68-68v-280q-17 0-28.5-11.5T280-800q0-17 11.5-28.5T320-840h320q17 0 28.5 11.5T680-800q0 17-11.5 28.5T640-760Z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {chats.length > 0 && isAuthenticated && (
+            <div className="sidebar-row sidebar-row-3">
+              <p>Recent</p>
+
+              {chats.map((c) => {
+                return (
+                  <div
+                    key={c._id}
+                    // onClick={() => handleChat(c._id)}
+                    onKeyDown={(e) => {
+                      // Only handle keyboard events on the parent itself
+                      if (e.target !== e.currentTarget) return;
+
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleChat(c._id);
+                      }
+                    }}
+                    // onKeyDown={(e) => {
+                    //   if (e.key === 'Enter' || e.key === ' ') {
+                    //     e.preventDefault();
+                    //     handleChat(c._id);
+                    //   }
+                    // }}
+                    className={
+                      chatId === c._id
+                        ? 'sidebar-btn2 selected'
+                        : 'sidebar-btn2'
+                    }
+                  >
+                    <button
+                      type="button"
+                      className="sidebar-chat-title"
+                      onClick={() => handleChat(c._id)}
+                    >
+                      {c.title}
+                    </button>
+                    {/* {c.title} */}
+
+                    <div className="sidebar-btn-group">
+                      {/* <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleTogglePin();
@@ -566,43 +839,105 @@ function App() {
                         <path d="M240-400q-33 0-56.5-23.5T160-480q0-33 23.5-56.5T240-560q33 0 56.5 23.5T320-480q0 33-23.5 56.5T240-400Zm240 0q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm240 0q-33 0-56.5-23.5T640-480q0-33 23.5-56.5T720-560q33 0 56.5 23.5T800-480q0 33-23.5 56.5T720-400Z" />
                       </svg>
                     </button> */}
-                    <ChatPopover
-                      // isPinned={c.isPinned}
-                      // onRename={() => handleRename(c._id)}
-                      onPin={() => handleTogglePin(c._id)}
-                      // onDelete={() => handleDelete(c._id)}
-                    />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleMoreOptions();
-                      }}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        height="24px"
-                        viewBox="0 -960 960 960"
-                        width="24px"
-                        fill="#1f1f1f"
+                      <ChatPopover
+                        // isPinned={c.isPinned}
+                        onRename={() => handleOpenRenameModal(c._id, c.title)}
+                        onPin={() => handleTogglePin(c)}
+                        onDelete={() => handleDeleteChat(c._id)}
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTogglePin(c);
+                        }}
                       >
-                        <path d="M640-760v280l68 68q6 6 9 13.5t3 15.5v23q0 17-11.5 28.5T680-320H520v234q0 17-11.5 28.5T480-46q-17 0-28.5-11.5T440-86v-234H280q-17 0-28.5-11.5T240-360v-23q0-8 3-15.5t9-13.5l68-68v-280q-17 0-28.5-11.5T280-800q0-17 11.5-28.5T320-840h320q17 0 28.5 11.5T680-800q0 17-11.5 28.5T640-760ZM354-400h252l-46-46v-314H400v314l-46 46Zm126 0Z" />
-                      </svg>
-                    </button>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          height="24px"
+                          viewBox="0 -960 960 960"
+                          width="24px"
+                          fill="#1f1f1f"
+                        >
+                          <path d="M640-760v280l68 68q6 6 9 13.5t3 15.5v23q0 17-11.5 28.5T680-320H520v234q0 17-11.5 28.5T480-46q-17 0-28.5-11.5T440-86v-234H280q-17 0-28.5-11.5T240-360v-23q0-8 3-15.5t9-13.5l68-68v-280q-17 0-28.5-11.5T280-800q0-17 11.5-28.5T320-840h320q17 0 28.5 11.5T680-800q0 17-11.5 28.5T640-760ZM354-400h252l-46-46v-314H400v314l-46 46Zm126 0Z" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
 
-        {isAuthenticated && (
-          <div className="sidebar-row sidebar-row-4">
-            <button onClick={handleLogout} className="sidebar-btn2">
-              Logout
+          {isAuthenticated && (
+            <div className="sidebar-row sidebar-row-4">
+              <button onClick={handleLogout} className="sidebar-btn2">
+                Logout
+              </button>
+            </div>
+          )}
+        </header>
+      )}
+      {/* //! SIDEBAR COLLAPSED */}
+      {/* //! SIDEBAR COLLAPSED */}
+      {/* //! SIDEBAR COLLAPSED */}
+      {sidebar === 'collapse' && (
+        <header className="collapsed-sidebar">
+          <div>
+            <button onClick={handleExpandidebar} className="sidebar-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#1f1f1f"
+              >
+                <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm280-80h280v-560H480v560Z" />
+              </svg>
             </button>
           </div>
-        )}
-      </header>
+
+          <div>
+            <button onClick={handleNewChat} className="sidebar-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#1f1f1f"
+              >
+                <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Zm481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z" />
+              </svg>
+            </button>
+            <button onClick={handleSearch} className="sidebar-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#1f1f1f"
+              >
+                <path d="M380-320q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l224 224q11 11 11 28t-11 28q-11 11-28 11t-28-11L532-372q-30 24-69 38t-83 14Zm0-80q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z" />
+              </svg>
+            </button>
+          </div>
+
+          {isAuthenticated && (
+            <div className="sidebar-row sidebar-row-4">
+              <button onClick={handleLogout} className="sidebar-btn2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="24px"
+                  viewBox="0 -960 960 960"
+                  width="24px"
+                  fill="#1f1f1f"
+                >
+                  <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Zm481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z" />
+                </svg>
+              </button>
+            </div>
+          )}
+        </header>
+      )}
       {/* MOBILE NAV */}
       <>
         {isOpen && (
@@ -692,128 +1027,129 @@ function App() {
         )}
       </>
       {/* //! RENAME MODAL */}{' '}
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 20,
-          zIndex: 1000,
-        }}
-        onClick={handleCloseRenameModal}
-      >
+      {showModal && (
         <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="rename-title"
-          onClick={(e) => e.stopPropagation()}
           style={{
-            width: '100%',
-            maxWidth: 400,
-            backgroundColor: '#ffffff',
-            borderRadius: 16,
-            padding: 24,
-            boxSizing: 'border-box',
-            boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+            zIndex: 1000,
           }}
+          onClick={handleCloseRenameModal}
         >
-          <h2
-            id="rename-title"
-            style={{
-              fontSize: 20,
-              fontWeight: 600,
-              color: '#111827',
-              margin: '0 0 8px',
-            }}
-          >
-            Rename title
-          </h2>
-
-          <p
-            style={{
-              fontSize: 14,
-              color: '#6b7280',
-              margin: '0 0 20px',
-              lineHeight: 1.5,
-            }}
-          >
-            Enter a new title for this conversation.
-          </p>
-
-          <input
-            autoFocus
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSave();
-              if (e.key === 'Escape') onClose?.();
-            }}
-            placeholder="Enter title"
-            maxLength={100}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rename-title"
+            onClick={(e) => e.stopPropagation()}
             style={{
               width: '100%',
-              padding: '12px 14px',
-              fontSize: 15,
-              color: '#111827',
+              maxWidth: 400,
               backgroundColor: '#ffffff',
-              border: '1px solid #d1d5db',
-              borderRadius: 10,
-              outline: 'none',
+              borderRadius: 16,
+              padding: 24,
               boxSizing: 'border-box',
-              marginBottom: 24,
-            }}
-          />
-
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: 10,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
             }}
           >
-            <button
-              type="button"
-              onClick={handleCloseRenameModal}
+            <h2
+              id="rename-title"
               style={{
-                padding: '10px 18px',
+                fontSize: 20,
+                fontWeight: 600,
+                color: '#111827',
+                margin: '0 0 8px',
+              }}
+            >
+              Rename title
+            </h2>
+
+            <p
+              style={{
+                fontSize: 14,
+                color: '#6b7280',
+                margin: '0 0 20px',
+                lineHeight: 1.5,
+              }}
+            >
+              Enter a new title for this conversation.
+            </p>
+
+            <input
+              autoFocus
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSave();
+                // if (e.key === 'Escape') onClose?.();
+              }}
+              placeholder="Enter title"
+              maxLength={100}
+              style={{
+                width: '100%',
+                padding: '12px 14px',
+                fontSize: 15,
+                color: '#111827',
+                backgroundColor: '#ffffff',
                 border: '1px solid #d1d5db',
                 borderRadius: 10,
-                backgroundColor: '#ffffff',
-                color: '#374151',
-                fontSize: 14,
-                fontWeight: 500,
-                cursor: 'pointer',
+                outline: 'none',
+                boxSizing: 'border-box',
+                marginBottom: 24,
               }}
-            >
-              Cancel
-            </button>
+            />
 
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={!title.trim()}
+            <div
               style={{
-                padding: '10px 20px',
-                border: 'none',
-                borderRadius: 10,
-                backgroundColor: title.trim() ? '#111827' : '#9ca3af',
-                color: '#ffffff',
-                fontSize: 14,
-                fontWeight: 500,
-                cursor: title.trim() ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 10,
               }}
             >
-              Save
-            </button>
+              <button
+                type="button"
+                onClick={handleCloseRenameModal}
+                style={{
+                  padding: '10px 18px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: 10,
+                  backgroundColor: '#ffffff',
+                  color: '#374151',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={!title.trim()}
+                style={{
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: 10,
+                  backgroundColor: title.trim() ? '#111827' : '#9ca3af',
+                  color: '#ffffff',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: title.trim() ? 'pointer' : 'not-allowed',
+                }}
+              >
+                Save
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      {/* //! RENAME MODAL */}
-      {/* MAIN CHAT */}
+      )}
+      {/* //! **************** MAIN CHAT *****************/}
       <main className={messages.length === 0 ? 'chat empty' : 'chat'}>
         <nav className={isAuthenticated ? 'nav no-auth' : 'nav'}>
           {isAuthenticated ? (
@@ -867,13 +1203,47 @@ function App() {
             </>
           )}
         </nav>
-
+        {/* //! **************** CHAT CONTAINER *****************/}
         <div className="chat-container">
           {messages.map((message, index) => {
             if (message.role === 'user') {
               return (
-                <div key={index} className="sender-bubble">
-                  <p>{message.text}</p>
+                <div key={index} className="sender-msg-wrapper">
+                  <div className="sender-bubble">
+                    <p>{message.text}</p>
+                  </div>
+                  <div className="sender-msg-btn-group">
+                    <button
+                      onClick={() => console.log('Hello world!')}
+                      type="button"
+                      className="sender-msg-btn"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        height="24px"
+                        viewBox="0 -960 960 960"
+                        width="24px"
+                        fill="#1f1f1f"
+                      >
+                        <path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-520q0-17 11.5-28.5T160-720q17 0 28.5 11.5T200-680v520h400q17 0 28.5 11.5T640-120q0 17-11.5 28.5T600-80H200Zm160-240v-480 480Z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => console.log('Hello world!')}
+                      type="button"
+                      className="sender-msg-btn"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        height="24px"
+                        viewBox="0 -960 960 960"
+                        width="24px"
+                        fill="#1f1f1f"
+                      >
+                        <path d="M200-200h57l391-391-57-57-391 391v57Zm-40 80q-17 0-28.5-11.5T120-160v-97q0-16 6-30.5t17-25.5l505-504q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L313-143q-11 11-25.5 17t-30.5 6h-97Zm600-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               );
             }
