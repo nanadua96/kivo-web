@@ -1,18 +1,18 @@
-"use server";
+'use server';
 
-import axios from "axios";
-import { redirect } from "next/navigation";
+import axios from 'axios';
+import { redirect } from 'next/navigation';
 
-import { loginSchema, signupSchema } from "@/lib/auth/schemas";
+import { loginSchema, signupSchema } from '@/lib/auth/schemas';
 
-import type { AuthActionResult } from "@/lib/auth/types";
+import type { AuthActionResult } from '@/lib/auth/types';
 
 import {
   clearSessionCookie,
-  fastifyApi,
+  api,
   getFastifyCookieHeader,
   storeFastifySession,
-} from "@/lib/server/fastify";
+} from '@/lib/server/fastify';
 
 /********************************************
  * ERROR HANDLING
@@ -22,28 +22,28 @@ function getSignupError(error: unknown): string {
   if (axios.isAxiosError(error)) {
     switch (error.response?.status) {
       case 409:
-        return "An account with this email already exists.";
+        return 'An account with this email already exists.';
 
       case 429:
-        return "Too many attempts. Please try again later.";
+        return 'Too many attempts. Please try again later.';
     }
   }
 
-  return "Unable to create your account. Please try again.";
+  return 'Unable to create your account. Please try again.';
 }
 
 function getLoginError(error: unknown): string {
   if (axios.isAxiosError(error)) {
     switch (error.response?.status) {
       case 401:
-        return "Invalid email or password.";
+        return 'Invalid email or password.';
 
       case 429:
-        return "Too many login attempts. Please try again later.";
+        return 'Too many login attempts. Please try again later.';
     }
   }
 
-  return "Unable to log in. Please try again.";
+  return 'Unable to log in. Please try again.';
 }
 
 /********************************************
@@ -59,12 +59,12 @@ export async function signupAction(
   if (!parsed.success) {
     return {
       ok: false,
-      message: parsed.error.issues[0]?.message ?? "Invalid form data",
+      message: parsed.error.issues[0]?.message ?? 'Invalid form data',
     };
   }
 
   try {
-    const response = await fastifyApi.post("/api/v1/auth/signup", parsed.data);
+    const response = await api.post('/api/v1/auth/signup', parsed.data);
 
     await storeFastifySession(response);
   } catch (error) {
@@ -74,7 +74,7 @@ export async function signupAction(
     };
   }
 
-  redirect("/");
+  redirect('/');
 }
 
 /********************************************
@@ -90,12 +90,12 @@ export async function loginAction(
   if (!parsed.success) {
     return {
       ok: false,
-      message: parsed.error.issues[0]?.message ?? "Invalid form data",
+      message: parsed.error.issues[0]?.message ?? 'Invalid form data',
     };
   }
 
   try {
-    const response = await fastifyApi.post("/api/v1/auth/login", parsed.data);
+    const response = await api.post('/api/v1/auth/login', parsed.data);
 
     await storeFastifySession(response);
   } catch (error) {
@@ -105,7 +105,7 @@ export async function loginAction(
     };
   }
 
-  redirect("/");
+  redirect('/');
 }
 
 /********************************************
@@ -117,7 +117,7 @@ export async function logoutAction() {
 
   try {
     if (cookieHeader) {
-      await fastifyApi.post("/api/v1/auth/logout", null, {
+      await api.post('/api/v1/auth/logout', null, {
         headers: {
           Cookie: cookieHeader,
         },
@@ -128,5 +128,5 @@ export async function logoutAction() {
     await clearSessionCookie();
   }
 
-  redirect("/");
+  redirect('/');
 }
