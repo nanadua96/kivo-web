@@ -11,4 +11,5 @@ export const auth = betterAuth({
   advanced: { database: { joins: true } },
   emailAndPassword: { enabled: true },
   plugins: [nextCookies()],
+  trustedOrigins: ['http://localhost:3000', 'http://127.0.0.1:3000'],
 });
