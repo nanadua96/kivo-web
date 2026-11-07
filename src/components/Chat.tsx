@@ -11,7 +11,7 @@ import Link from 'next/link';
 // import './App.css';
 import { ChatPopover } from './ChatPopover';
 
-const BASE_URL = 'http://127.0.0.0.1:4000';
+const BASE_URL = 'http://127.0.0.1:4000';
 
 const createId = init({ length: 24 });
 
@@ -47,20 +47,39 @@ export default function Chat() {
     else setIsAuthenticated(true);
   }
 
+  async function ping() {
+    try {
+      const res = await fetch(BASE_URL + '/ping');
+
+      if (!res.ok) {
+        console.log('[/ping] error:');
+        console.log(res);
+        return;
+      }
+
+      console.log('Server ping success');
+    } catch (error) {
+      console.log('[/ping] error:', error);
+    }
+  }
+
   useEffect(() => {
     hello();
+    ping();
   }, []);
+
+  // return <p>Hello world!</p>;
 
   useEffect(() => {
     async function getChats() {
       try {
-        const res = await fetch(BASE_URL + '/api/chats', {
+        const res = await fetch(BASE_URL + '/api/v1/conversations', {
           credentials: 'include',
         });
 
         if (!res.ok) {
+          console.log('[/api/v1/conversations] error:');
           console.log(res);
-          console.log('ERRO@');
           return;
         }
 
@@ -78,7 +97,6 @@ export default function Chat() {
 
   async function handleLogout() {
     console.log('Signing out...');
-
     await authClient.signOut();
     setIsAuthenticated(false);
   }
@@ -108,7 +126,7 @@ export default function Chat() {
         message: inputValue,
       };
 
-      const response = await fetch(BASE_URL + '/api/chats', {
+      const response = await fetch(`${BASE_URL}/api/v1/conversations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -129,7 +147,7 @@ export default function Chat() {
       if (chatId === 'new') setChatId(data?.conversationId);
 
       if (chatId === 'new' && isAuthenticated) {
-        const newConversation = { _id: data._id, title: data.title };
+        const newConversation = { id: data.id, title: data.title };
         const oldConversations = [...chats];
         oldConversations.unshift(newConversation);
         setChats(oldConversations);
@@ -209,9 +227,12 @@ export default function Chat() {
     setChatId(id);
 
     try {
-      const response = await fetch(`${BASE_URL}/api/chats/${id}/messages`, {
-        credentials: 'include',
-      });
+      const response = await fetch(
+        `${BASE_URL}/api/v1/conversations/${id}/messages`,
+        {
+          credentials: 'include',
+        },
+      );
 
       if (!response.ok) {
         const data = await response.json();
@@ -363,7 +384,7 @@ export default function Chat() {
 
   async function handleTogglePin(item) {
     try {
-      const response = await fetch(`${BASE_URL}/api/chats/${item._id}/pin`, {
+      const response = await fetch(`${BASE_URL}/api/chats/${item.id}/pin`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -378,7 +399,7 @@ export default function Chat() {
 
       if (data.pinned) {
         setChats((prev) => {
-          return prev.filter((i) => i._id !== item._id);
+          return prev.filter((i) => i.id !== item.id);
         });
 
         setPinnedChats((prev) => {
@@ -386,7 +407,7 @@ export default function Chat() {
         });
       } else {
         setPinnedChats((prev) => {
-          return prev.filter((i) => i._id !== item._id);
+          return prev.filter((i) => i.id !== item.id);
         });
 
         setChats((prev) => {
@@ -431,7 +452,7 @@ export default function Chat() {
       // );
 
       const response = await fetch(
-        `${BASE_URL}/api/chats/${currentRenameId}/rename`,
+        `${BASE_URL}/api/v1/conversations/${currentRenameId}/rename`,
         {
           method: 'POST',
           credentials: 'include',
@@ -450,7 +471,7 @@ export default function Chat() {
 
       setChats((prev) => {
         return prev.map((i) => {
-          if (i._id === currentRenameId) return { ...i, title };
+          if (i.id === currentRenameId) return { ...i, title };
           return i;
         });
       });
@@ -489,10 +510,13 @@ export default function Chat() {
       //   `${BASE_URL}/api/chats/${chatId}?guestSessionId=${guestSessionId}`,
       // );
 
-      const response = await fetch(`${BASE_URL}/api/chats/${chatId}/`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
+      const response = await fetch(
+        `${BASE_URL}/api/v1/conversations/${chatId}/`,
+        {
+          method: 'DELETE',
+          credentials: 'include',
+        },
+      );
 
       if (!response.ok) {
         // const data = await response.json();
@@ -501,7 +525,7 @@ export default function Chat() {
       }
 
       setChats((prev) => {
-        return prev.filter((i) => i._id !== chatId);
+        return prev.filter((i) => i.id !== chatId);
       });
     } catch (err) {
       // setError(true);
@@ -520,7 +544,7 @@ export default function Chat() {
       //   `${BASE_URL}/api/chats/${chatId}?guestSessionId=${guestSessionId}`,
       // );
 
-      const response = await fetch(`${BASE_URL}/api/chats/pinned`, {
+      const response = await fetch(`${BASE_URL}/api/v1/conversations/pinned`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -599,7 +623,7 @@ export default function Chat() {
 
       setMessages((prev) =>
         prev.map((i) => {
-          if (i.role === 'assistant' && i._id === id) {
+          if (i.role === 'assistant' && i.id === id) {
             return { ...i, rating };
           }
 
@@ -619,22 +643,20 @@ export default function Chat() {
 
     // return;
     try {
-      const sortedMessages = messages.sort((a, b) =>
-        a._id.localeCompare(b._id),
-      );
+      const sortedMessages = messages.sort((a, b) => a._id.localeCompare(b.id));
 
       // console.log(sortedMessages);
 
       // return;
 
-      const currentMessageIndex = sortedMessages.findIndex((i) => i._id === id);
+      const currentMessageIndex = sortedMessages.findIndex((i) => i.id === id);
       const previousMessage = sortedMessages[currentMessageIndex - 1];
       console.log('Previous message:', previousMessage);
 
       // return;
 
       const response = await fetch(
-        `${BASE_URL}/api/messages/${previousMessage._id}/regenerate`,
+        `${BASE_URL}/api/messages/${previousMessage.id}/regenerate`,
         {
           method: 'POST',
           credentials: 'include',
@@ -674,6 +696,122 @@ export default function Chat() {
     }
   }
 
+  ////////////////////////////////////////////////////////////////////////////////! STREAMING
+  const [input, setInput] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
+
+  async function handleSendMessage(event) {
+    event.preventDefault();
+
+    const userMessageId = createId();
+    const assistantReplyId = createId();
+
+    // return;
+
+    event.preventDefault();
+    // if (!input.trim() || isStreaming) return;
+
+    const inputValue = inputRef.current?.value.trim();
+    if (!inputValue || isPending) return;
+
+    // console.log('⚡', inputValue);
+
+    setIsPending(true);
+    setError(false);
+
+    const userMessageText = inputValue;
+
+    setInput('');
+    setIsStreaming(true);
+
+    // Append user message and an empty placeholder for the assistant response
+    setMessages((prev) => [
+      ...prev,
+      { id: userMessageId, role: 'user', content: userMessageText },
+      { id: assistantReplyId, role: 'assistant', content: '' },
+    ]);
+
+    inputRef.current.value = '';
+    // return;
+
+    try {
+      const response = await fetch(
+        'http://127.0.0.1:4000/api/stream',
+        // 'http://127.0.0.1:4000/api/v1/conversations/stream',
+        {
+          credentials: 'include',
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: userMessageText,
+            conversationId: 'portfolio-chat-1',
+            model: 'qwen/qwen3.8-27b',
+            //  model: 'openai/gpt-oss-20b',
+          }),
+        },
+      );
+
+      if (!response.ok) throw new Error('Network response failed');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        // Decode chunk bytes to string and append to buffer
+        buffer += decoder.decode(value, { stream: true });
+
+        // SSE messages are separated by double newlines
+        const lines = buffer.split('\n\n');
+        // Keep the last partial line in the buffer if it didn't end with \n\n
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data:')) continue;
+
+          const jsonStr = trimmed.replace('data:', '').trim();
+          if (jsonStr === '[DONE]') {
+            setIsStreaming(false);
+            break;
+          }
+
+          const parsed = JSON.parse(jsonStr);
+
+          if (parsed.content) {
+            // Update the last message (the assistant's ongoing response) immutably
+            setMessages((prev) => {
+              const updated = [...prev];
+              const lastMsg = updated[updated.length - 1];
+              updated[updated.length - 1] = {
+                ...lastMsg,
+                content: lastMsg.content + parsed.content,
+              };
+              return updated;
+            });
+
+            // setMessages((prev) => {
+            //   return prev.map((i) => {
+            //     if (i.id === assistantReplyId)
+            //       return { ...i, content: parsed.content };
+            //     return i;
+            //   });
+            // });
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Streaming client error:', err);
+    } finally {
+      setIsStreaming(false);
+      setIsPending(false);
+    }
+  }
+  ////////////////////////////////////////////////////////////////////////////////! STREAMING
+
   return (
     <>
       {/* SIDEBAR */}
@@ -684,7 +822,11 @@ export default function Chat() {
               Kivo
             </a>
             <div className="sidebar-header__group">
-              <button onClick={handleSearch} className="sidebar-btn">
+              <button
+                type="button"
+                onClick={handleSearch}
+                className="sidebar-btn"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   height="24px"
@@ -731,7 +873,7 @@ export default function Chat() {
               {pinnedChats.map((c) => {
                 return (
                   <div
-                    key={c._id}
+                    key={c.id}
                     // onClick={() => handleChat(c._id)}
                     onKeyDown={(e) => {
                       // Only handle keyboard events on the parent itself
@@ -739,7 +881,7 @@ export default function Chat() {
 
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        handleChat(c._id);
+                        handleChat(c.id);
                       }
                     }}
                     // onKeyDown={(e) => {
@@ -749,15 +891,13 @@ export default function Chat() {
                     //   }
                     // }}
                     className={
-                      chatId === c._id
-                        ? 'sidebar-btn2 selected'
-                        : 'sidebar-btn2'
+                      chatId === c.id ? 'sidebar-btn2 selected' : 'sidebar-btn2'
                     }
                   >
                     <button
                       type="button"
                       className="sidebar-chat-title"
-                      onClick={() => handleChat(c._id)}
+                      onClick={() => handleChat(c.id)}
                     >
                       {c.title}
                     </button>
@@ -766,9 +906,9 @@ export default function Chat() {
                     <div className="sidebar-btn-group">
                       <ChatPopover
                         // isPinned={c.isPinned}
-                        onRename={() => handleOpenRenameModal(c._id, c.title)}
-                        onPin={() => handleTogglePin(c._id)}
-                        onDelete={() => handleDeleteChat(c._id)}
+                        onRename={() => handleOpenRenameModal(c.id, c.title)}
+                        onPin={() => handleTogglePin(c.id)}
+                        onDelete={() => handleDeleteChat(c.id)}
                       />
                       <button
                         onClick={(e) => {
@@ -800,7 +940,7 @@ export default function Chat() {
               {chats.map((c) => {
                 return (
                   <div
-                    key={c._id}
+                    key={c.id}
                     // onClick={() => handleChat(c._id)}
                     onKeyDown={(e) => {
                       // Only handle keyboard events on the parent itself
@@ -808,7 +948,7 @@ export default function Chat() {
 
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        handleChat(c._id);
+                        handleChat(c.id);
                       }
                     }}
                     // onKeyDown={(e) => {
@@ -818,15 +958,13 @@ export default function Chat() {
                     //   }
                     // }}
                     className={
-                      chatId === c._id
-                        ? 'sidebar-btn2 selected'
-                        : 'sidebar-btn2'
+                      chatId === c.id ? 'sidebar-btn2 selected' : 'sidebar-btn2'
                     }
                   >
                     <button
                       type="button"
                       className="sidebar-chat-title"
-                      onClick={() => handleChat(c._id)}
+                      onClick={() => handleChat(c.id)}
                     >
                       {c.title}
                     </button>
@@ -851,9 +989,9 @@ export default function Chat() {
                     </button> */}
                       <ChatPopover
                         // isPinned={c.isPinned}
-                        onRename={() => handleOpenRenameModal(c._id, c.title)}
+                        onRename={() => handleOpenRenameModal(c.id, c.title)}
                         onPin={() => handleTogglePin(c)}
-                        onDelete={() => handleDeleteChat(c._id)}
+                        onDelete={() => handleDeleteChat(c.id)}
                       />
                       <button
                         onClick={(e) => {
@@ -1382,7 +1520,8 @@ export default function Chat() {
             </div>
           )}
 
-          <form className="input-wrapper" onSubmit={handleSubmit}>
+          <form className="input-wrapper" onSubmit={handleSendMessage}>
+            {/* <form className="input-wrapper" onSubmit={handleSubmit}> */}
             <input
               type="text"
               id="chat"
