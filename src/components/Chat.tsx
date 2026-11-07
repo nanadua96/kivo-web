@@ -8,6 +8,7 @@ import rehypeHighlight from 'rehype-highlight';
 import remarkGfm from 'remark-gfm';
 import 'highlight.js/styles/github-dark.css';
 import Link from 'next/link';
+import AuthModal from './AuthModal';
 // import './App.css';
 import { ChatPopover } from './ChatPopover';
 
@@ -811,9 +812,39 @@ export default function Chat() {
     }
   }
   ////////////////////////////////////////////////////////////////////////////////! STREAMING
+  const [showAuth, setShowAuth] = useState(false);
+
+  function handleSignIn() {
+    setShowAuth(true);
+  }
 
   return (
     <>
+      {/* //! ======= AUTH MODAL =========== */}
+      {showAuth && (
+        <AuthModal
+          onClose={() => setShowAuth(false)}
+          onSignIn={async ({ email }) => {
+            // Better Auth: request sign-in OTP
+            console.log('Request sign-in OTP:', email);
+          }}
+          onSignUp={async ({ name, email }) => {
+            // Better Auth: create account and request OTP
+            console.log('Register:', name, email);
+          }}
+          onVerifyOtp={async ({ email, otp }) => {
+            // Better Auth: verify OTP
+            console.log('Verify:', email, otp);
+
+            // Refresh your auth state here if necessary.
+          }}
+          onResendOtp={async (email) => {
+            // Better Auth: resend OTP
+            console.log('Resend OTP:', email);
+          }}
+        />
+      )}
+
       {/* SIDEBAR */}
       {sidebar === 'expand' && (
         <header className="sidebar">
@@ -1333,12 +1364,26 @@ export default function Chat() {
               </button>
 
               <div className="nav-button-group">
-                <Link href="/signup" className="btn-base btn-outline">
+                <button
+                  type="button"
+                  className="btn-base btn-outline"
+                  onClick={handleSignIn}
+                >
+                  Sign up
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSignIn}
+                  className="btn-base btn-solid"
+                >
+                  Login
+                </button>
+                {/* <Link href="/signup" className="btn-base btn-outline">
                   Sign up
                 </Link>
                 <Link href="/login" className="btn-base btn-solid">
                   Login
-                </Link>
+                </Link> */}
               </div>
             </>
           )}

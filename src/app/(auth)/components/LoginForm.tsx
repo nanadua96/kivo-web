@@ -1,25 +1,20 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useActionState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { loginAction } from './actions';
 
 export const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Enter a valid email address'),
+  email: z.email({
+    pattern:
+      /^(?!\.)(?!.*\.\.)([a-z0-9_'+\-.]*)[a-z0-9_+-]@([a-z0-9][a-z0-9-]*\.)+[a-z]{2,}$/i,
+  }),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
-  const [state, formAction, isPending] = useActionState(loginAction, {
-    errors: {},
-  });
-
   const {
     register,
     handleSubmit,

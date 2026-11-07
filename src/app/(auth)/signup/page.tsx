@@ -1,4 +1,4 @@
-import { signUpAction } from '@/app/actions/auth';
+import { signUpAction } from '@/app/(auth)/actions/auth';
 
 export default function SignUpPage() {
   return (
