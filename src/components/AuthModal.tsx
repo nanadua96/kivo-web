@@ -4,19 +4,24 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { authClient } from '@/lib/auth-client';
 import styles from './AuthModal.module.css';
 
 // -----------------------------
 // Validation schemas
 // -----------------------------
+const zEmail = z.email({
+  pattern:
+    /^(?!\.)(?!.*\.\.)([a-z0-9_'+\-.]*)[a-z0-9_+-]@([a-z0-9][a-z0-9-]*\.)+[a-z]{2,}$/i,
+});
 
 const signInSchema = z.object({
-  email: z.string().trim().email('Enter a valid email address'),
+  email: zEmail,
 });
 
 const signUpSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters'),
-  email: z.string().trim().email('Enter a valid email address'),
+  email: zEmail,
 });
 
 const otpSchema = z.object({
@@ -123,9 +128,20 @@ export default function AuthModal({
   async function handleSignIn(data: SignInValues) {
     setServerError('');
 
+    console.log(data);
+
     try {
       await onSignIn(data);
+
       setEmail(data.email);
+
+      const response = await authClient.emailOtp.sendVerificationOtp({
+        email: data.email,
+        type: 'sign-in',
+      });
+
+      if (!response.data?.success) throw new Error(response.error?.message);
+
       otpForm.reset();
       changeView('otp');
     } catch (error) {
@@ -143,6 +159,14 @@ export default function AuthModal({
     try {
       await onSignUp(data);
       setEmail(data.email);
+
+      const response = await authClient.emailOtp.sendVerificationOtp({
+        email: data.email,
+        type: 'sign-in',
+      });
+
+      if (!response.data?.success) throw new Error(response.error?.message);
+
       otpForm.reset();
       changeView('otp');
     } catch (error) {
@@ -158,13 +182,19 @@ export default function AuthModal({
     setServerError('');
 
     try {
-      await onVerifyOtp({
+      //   await onVerifyOtp({
+      //     email,
+      //     otp: data.otp,
+      //   });
+
+      const response = await authClient.signIn.emailOtp({
         email,
         otp: data.otp,
+        name: signUpForm.getValues('name'),
       });
 
-      // Your parent component can handle closing,
-      // navigation, and updating authentication state.
+      if (!response.data?.user) throw new Error(response.error?.message);
+
       onClose();
     } catch (error) {
       showError(error);
@@ -228,8 +258,11 @@ export default function AuthModal({
           {view === 'signin' && (
             <>
               <div className={styles.heading}>
-                <h2 id="auth-title">Welcome back</h2>
-                <p>Sign in to continue where you left off.</p>
+                <h2 id="auth-title">Log in or sign up</h2>
+                <p>
+                  You’ll get smarter responses and can upload files, images, and
+                  more.
+                </p>
               </div>
 
               <form onSubmit={signInForm.handleSubmit(handleSignIn)} noValidate>
@@ -267,7 +300,9 @@ export default function AuthModal({
 
               <div className={styles.switchText}>
                 Don't have an account?{' '}
-                <button onClick={() => changeView('signup')}>Sign up</button>
+                <button type="button" onClick={() => changeView('signup')}>
+                  Sign up
+                </button>
               </div>
             </>
           )}
@@ -332,7 +367,9 @@ export default function AuthModal({
 
               <div className={styles.switchText}>
                 Already have an account?{' '}
-                <button onClick={() => changeView('signin')}>Sign in</button>
+                <button type="button" onClick={() => changeView('signin')}>
+                  Sign in
+                </button>
               </div>
             </>
           )}
@@ -418,6 +455,7 @@ export default function AuthModal({
               </div>
 
               <button
+                type="button"
                 className={styles.backButton}
                 onClick={() => changeView('signin')}
               >
