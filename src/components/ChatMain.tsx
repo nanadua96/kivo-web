@@ -7,8 +7,6 @@ type Props = {
 };
 
 export default function ChatMain({ className }: Props) {
-  console.log('💎', className);
-
   return <section className={className ?? ''}></section>;
   // return <section className={`${styles.wrapper} ${className ?? ''}`}></section>;
 }

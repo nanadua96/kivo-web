@@ -1,34 +1,21 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Inter_Tight } from 'next/font/google';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const fontPrimary = Inter_Tight({
+  variable: '--font-primary',
   subsets: ['latin'],
+  display: 'swap',
 });
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
-
 export const metadata: Metadata = {
-  title: 'Kivo: Chat, Work, Create & Code with AI',
+  title: 'Kivo: Your AI Assistant for Chat, Creativity, Work & Code',
   description:
-    'Use Kivo to answer questions, write, create images, complete work, and code—all in one place. Get started for free or download the app.',
+    'Discover Kivo, your all-in-one AI assistant. Ask questions, write content, get work done, and build with code—all in one place. Start for free.',
 };
-
-// export default function RootLayout({ children }: LayoutProps<"/">) {
-//   return (
-//     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-//       <body>{children}</body>
-//     </html>
-//   );
-// }
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${fontPrimary.variable}`}>
       <body>{children}</body>
     </html>
   );
