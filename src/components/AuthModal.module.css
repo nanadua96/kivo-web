@@ -85,7 +85,7 @@
   padding: 38px 36px 30px;
 }
 
-.brand {
+/* .brand {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -94,9 +94,9 @@
   font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.4px;
-}
+} */
 
-.brandIcon {
+/* .brandIcon {
   display: grid;
   place-items: center;
   width: 34px;
@@ -106,7 +106,7 @@
   border-radius: 10px;
   font-size: 17px;
   font-weight: 800;
-}
+} */
 
 .heading {
   margin-bottom: 28px;
@@ -119,6 +119,7 @@
   line-height: 1.25;
   font-weight: 700;
   letter-spacing: -0.9px;
+  text-align: center;
 }
 
 .heading p {
@@ -126,6 +127,7 @@
   color: #64748b;
   font-size: 14px;
   line-height: 1.6;
+  text-align: center;
 }
 
 /* -----------------------------
@@ -270,28 +272,6 @@
 /* -----------------------------
    OTP verification
 ----------------------------- */
-
-.otpIcon {
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  margin-bottom: 20px;
-  color: #2563eb;
-  background: #eff6ff;
-  border-radius: 14px;
-}
-
-.otpIcon svg {
-  width: 25px;
-  height: 25px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
 .emailAddress {
   display: block;
   margin-top: 5px;
@@ -418,5 +398,17 @@
   .closeButton,
   .field input {
     transition: none;
+  }
+}
+
+/* EXTRA */
+.changeEmail {
+  display: flex;
+  /* gap: 16px; */
+  gap: 4px;
+
+  & button {
+    text-decoration: underline;
+    color: #1d4ed8;
   }
 }
