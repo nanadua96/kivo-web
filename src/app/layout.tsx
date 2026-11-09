@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import { Inter_Tight } from 'next/font/google';
 import './globals.css';
+import { Providers } from './providers';
 
 const fontPrimary = Inter_Tight({
   variable: '--font-primary',
   subsets: ['latin'],
   display: 'swap',
 });
+
 export const metadata: Metadata = {
   title: 'Kivo: Your AI Assistant for Chat, Creativity, Work & Code',
   description:
@@ -16,7 +18,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="en" className={`${fontPrimary.variable}`}>
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

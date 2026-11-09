@@ -526,7 +526,7 @@
   z-index: 1001;
   flex-shrink: 0;
   background: #fff;
-  overflow: hidden;
+  overflow: visible;
   transition:
     transform 300ms ease-in-out,
     opacity 300ms ease-in-out;

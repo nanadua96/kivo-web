@@ -21,19 +21,17 @@
 // │   ├── ConversationItem.tsx    # Individual conversation
 // │   └── NewChatButton.tsx       # New chat button
 
-"use client";
+'use client';
 
-import { init } from "@paralleldrive/cuid2";
-import { createAuthClient } from "better-auth/client";
-import { useEffect, useState } from "react";
-import { useSidebar } from "@/store";
-import AuthModal from "./AuthModal";
-import { ChatPopover } from "./ChatPopover";
-import styles from "./ChatSidebar.module.css";
+import { init } from '@paralleldrive/cuid2';
+import { createAuthClient } from 'better-auth/client';
+import { useEffect, useState } from 'react';
+import { useSidebar } from '@/store';
+import AuthModal from './AuthModal';
+import { ChatPopover } from './ChatPopover';
+import styles from './ChatSidebar.module.css';
 
-
-
-const BASE_URL = "http://127.0.0.1:4000";
+const BASE_URL = 'http://127.0.0.1:4000';
 
 const createId = init({ length: 24 });
 
@@ -45,16 +43,17 @@ type Props = {
 };
 
 export default function ChatSidebar({ className, expand }: Props) {
-  const [chatId, setChatId] = useState("new");
+  const [chatId, setChatId] = useState('new');
   const [chats, setChats] = useState([]);
 
   const [conversations, setConversations] = useState([]);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false); //! GET FROM AUTH CLIENT
+
   async function hello() {
-    console.log("Running...");
+    console.log('Running...');
     const a = await authClient.getSession();
-    console.log("🌈🔥💎🔴🔴🧊", a);
+    console.log('🌈🔥💎🔴🔴🧊', a);
 
     if (!a.data) setIsAuthenticated(false);
     else setIsAuthenticated(true);
@@ -62,17 +61,17 @@ export default function ChatSidebar({ className, expand }: Props) {
 
   async function ping() {
     try {
-      const res = await fetch(BASE_URL + "/ping");
+      const res = await fetch(BASE_URL + '/ping');
 
       if (!res.ok) {
-        console.log("[/ping] error:");
+        console.log('[/ping] error:');
         console.log(res);
         return;
       }
 
-      console.log("Server ping success");
+      console.log('Server ping success');
     } catch (error) {
-      console.log("[/ping] error:", error);
+      console.log('[/ping] error:', error);
     }
   }
 
@@ -86,22 +85,22 @@ export default function ChatSidebar({ className, expand }: Props) {
   useEffect(() => {
     async function getChats() {
       try {
-        const res = await fetch(BASE_URL + "/api/v1/conversations", {
-          credentials: "include",
+        const res = await fetch(BASE_URL + '/api/v1/conversations', {
+          credentials: 'include',
         });
 
         if (!res.ok) {
-          console.log("[/api/v1/conversations] error:");
+          console.log('[/api/v1/conversations] error:');
           console.log(res);
           return;
         }
 
         const data = await res.json();
-        console.log("🍑 Chats:", data);
+        console.log('🍑 Chats:', data);
 
         setChats(data);
       } catch (error) {
-        console.log("Error!", error);
+        console.log('Error!', error);
       }
     }
 
@@ -109,7 +108,7 @@ export default function ChatSidebar({ className, expand }: Props) {
   }, [isAuthenticated]);
 
   async function handleLogout() {
-    console.log("Signing out...");
+    console.log('Signing out...');
     await authClient.signOut();
     setIsAuthenticated(false);
   }
@@ -126,7 +125,7 @@ export default function ChatSidebar({ className, expand }: Props) {
   }
 
   async function resetChat() {
-    setChatId("new");
+    setChatId('new');
     setMessages([]);
   }
 
@@ -143,15 +142,15 @@ export default function ChatSidebar({ className, expand }: Props) {
       const response = await fetch(
         `${BASE_URL}/api/chats/${chatId}?guestSessionId=${guestSessionId}`,
         {
-          method: "DELETE",
-          credentials: "include",
+          method: 'DELETE',
+          credentials: 'include',
         },
       );
 
       if (!response.ok) {
         // const data = await response.json();
         // console.log('ERROR DELETEING CONVERSATION', data);
-        throw new Error("Failed to delete conversation");
+        throw new Error('Failed to delete conversation');
       }
 
       // Set a
@@ -182,19 +181,19 @@ export default function ChatSidebar({ className, expand }: Props) {
       const response = await fetch(
         `${BASE_URL}/api/v1/conversations/${id}/messages`,
         {
-          credentials: "include",
+          credentials: 'include',
         },
       );
 
       if (!response.ok) {
         const data = await response.json();
-        console.log("ERROR", data);
+        console.log('ERROR', data);
 
-        throw new Error("Failed to send message");
+        throw new Error('Failed to send message');
       }
 
       const data = await response.json();
-      console.log("🔥 Chat history:", data);
+      console.log('🔥 Chat history:', data);
 
       setMessages(data);
     } catch (err) {
@@ -212,16 +211,16 @@ export default function ChatSidebar({ className, expand }: Props) {
     if (!isOpen) return undefined;
 
     const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (event) => {
-      if (event.key === "Escape") setIsOpen(false);
+      if (event.key === 'Escape') setIsOpen(false);
     };
 
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen]);
 
@@ -231,7 +230,7 @@ export default function ChatSidebar({ className, expand }: Props) {
 
   function handleMobilLogin() {
     closeMenu();
-    openAuthModal("login");
+    openAuthModal('login');
   }
 
   function handleMobileNewChat() {
@@ -245,12 +244,12 @@ export default function ChatSidebar({ className, expand }: Props) {
   async function handleTogglePin(item) {
     try {
       const response = await fetch(`${BASE_URL}/api/chats/${item.id}/pin`, {
-        method: "POST",
-        credentials: "include",
+        method: 'POST',
+        credentials: 'include',
       });
 
       if (!response.ok) {
-        throw new Error("Failed to pin conversation");
+        throw new Error('Failed to pin conversation');
       }
 
       const data = await response.json();
@@ -293,14 +292,14 @@ export default function ChatSidebar({ className, expand }: Props) {
   }
 
   function handleMoreOptions() {
-    console.log("Showing more options");
+    console.log('Showing more options');
   }
 
   //////////////////////////////////////////////////////! RENAME MODAL
 
   const [showModal, setShowModal] = useState(false);
-  const [title, setTitle] = useState("");
-  const [currentRenameId, setCurrentRenameId] = useState("");
+  const [title, setTitle] = useState('');
+  const [currentRenameId, setCurrentRenameId] = useState('');
 
   async function handleSave() {
     console.log({ title, currentRenameId });
@@ -314,19 +313,19 @@ export default function ChatSidebar({ className, expand }: Props) {
       const response = await fetch(
         `${BASE_URL}/api/v1/conversations/${currentRenameId}/rename`,
         {
-          method: "POST",
-          credentials: "include",
+          method: 'POST',
+          credentials: 'include',
           body: JSON.stringify({
             title,
           }),
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
         },
       );
 
       if (!response.ok) {
-        throw new Error("Failed to renaming conversation");
+        throw new Error('Failed to renaming conversation');
       }
 
       setChats((prev) => {
@@ -336,8 +335,8 @@ export default function ChatSidebar({ className, expand }: Props) {
         });
       });
 
-      setTitle("");
-      setCurrentRenameId("");
+      setTitle('');
+      setCurrentRenameId('');
 
       handleCloseRenameModal();
     } catch (err) {
@@ -357,7 +356,7 @@ export default function ChatSidebar({ className, expand }: Props) {
   }
 
   function handleCloseRenameModal() {
-    console.log("Modal closed!");
+    console.log('Modal closed!');
 
     setShowModal(false);
   }
@@ -373,15 +372,15 @@ export default function ChatSidebar({ className, expand }: Props) {
       const response = await fetch(
         `${BASE_URL}/api/v1/conversations/${chatId}/`,
         {
-          method: "DELETE",
-          credentials: "include",
+          method: 'DELETE',
+          credentials: 'include',
         },
       );
 
       if (!response.ok) {
         // const data = await response.json();
         // console.log('ERROR DELETEING CONVERSATION', data);
-        throw new Error("Failed to delete conversation");
+        throw new Error('Failed to delete conversation');
       }
 
       setChats((prev) => {
@@ -405,12 +404,12 @@ export default function ChatSidebar({ className, expand }: Props) {
       // );
 
       const response = await fetch(`${BASE_URL}/api/v1/conversations/pinned`, {
-        method: "POST",
-        credentials: "include",
+        method: 'POST',
+        credentials: 'include',
       });
 
       if (!response.ok) {
-        throw new Error("Failed to getting pinned conversation");
+        throw new Error('Failed to getting pinned conversation');
       }
 
       const data = await response.json();
@@ -427,22 +426,22 @@ export default function ChatSidebar({ className, expand }: Props) {
     fetchPinnedChats();
   }, []);
 
-  const [sidebar, setSidebar] = useState("expand");
+  const [sidebar, setSidebar] = useState('expand');
 
   function handleToggleSidebar() {
-    console.log("Expanding/collapsing sidebar...");
+    console.log('Expanding/collapsing sidebar...');
   }
 
   function handleExpandidebar() {
-    setSidebar("expand");
+    setSidebar('expand');
   }
 
   function handleCollapseSidebar() {
-    setSidebar("collapse");
+    setSidebar('collapse');
   }
 
   function handleSearch() {
-    console.log("Searching...");
+    console.log('Searching...');
   }
 
   const [showAuth, setShowAuth] = useState(false);
@@ -474,18 +473,14 @@ export default function ChatSidebar({ className, expand }: Props) {
       });
     }
 
-    return arr
+    return arr;
   }
-
 
   const list = generateList(5);
 
   // console.log("🟢", list);
-  
-
 
   // return <></>
-
 
   const expanded = useSidebar((state) => state.expanded);
   const toggleSidebar = useSidebar((state) => state.toggleSidebar);
@@ -494,7 +489,7 @@ export default function ChatSidebar({ className, expand }: Props) {
 
   return (
     <aside
-      className={` ${styles.sidebar} ${expanded ? styles.expanded : styles.collapsed} ${className ?? ""}`}
+      className={` ${styles.sidebar} ${expanded ? styles.expanded : styles.collapsed} ${className ?? ''}`}
       aria-hidden={!expanded}
       inert={!expanded}
     >
@@ -574,7 +569,7 @@ export default function ChatSidebar({ className, expand }: Props) {
                   // Only handle keyboard events on the parent itself
                   if (e.target !== e.currentTarget) return;
 
-                  if (e.key === "Enter" || e.key === " ") {
+                  if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     handleChat(c.id);
                   }
@@ -634,23 +629,23 @@ export default function ChatSidebar({ className, expand }: Props) {
       <footer className="sidebar-row sidebar-row-4">
         <button
           type="button"
-          style={{ display: "flex", alignItems: "center", gap: "16px" }}
+          style={{ display: 'flex', alignItems: 'center', gap: '16px' }}
         >
           <div
             style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor: "palegoldenrod",
-              height: "32px",
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: 'palegoldenrod',
+              height: '32px',
               aspectRatio: 1,
-              borderRadius: "999px",
+              borderRadius: '999px',
             }}
           >
             <p>N</p>
           </div>
           <div>
-            <p style={{ fontSize: "14px" }}>nanadua11@outlook.com</p>
+            <p style={{ fontSize: '14px' }}>nanadua11@outlook.com</p>
           </div>
         </button>
       </footer>

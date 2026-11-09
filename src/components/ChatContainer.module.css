@@ -16,7 +16,7 @@
 .container > .sidebar {
   grid-column: 1;
   grid-row: 1;
-  width: 100%;
+  width: 260px;
   min-width: 0;
   background-color: #fafafa;
   border-right: 1px solid rgb(0 0 0 / 10%);
