@@ -14,10 +14,8 @@
 .nav {
   padding: calc(16rem / 16);
   display: flex;
+  align-items: center;
   gap: 10px;
-
-
-  background-color: red;
 }
 
 /* .nav-button-group {
@@ -34,7 +32,7 @@
 
 .hamburgerButton {
   cursor: pointer;
-  /* display: none; */
+  display: flex;
   justify-content: center;
   align-items: center;
   border: 1px solid rgb(211, 211, 211);
@@ -44,6 +42,48 @@
   /* box-shadow: rgba(0, 0, 0, 0.15) 0px 8px 16px 0px; */
 
   @media (width < 800px) {
-    display: block;
+    display: flex;
+  }
+}
+
+.iconButton {
+  /* background-color: rgba(66, 66, 66, 0.45); */
+  height: 32px;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+
+  & svg {
+    height: 18px;
+    width: 18px;
+    fill: #171717;
+  }
+}
+
+.sidebarToggleButton {
+  animation: sidebar-toggle-appear 150ms ease-in-out 150ms both;
+}
+
+@keyframes sidebar-toggle-appear {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebarToggleButton {
+    animation: none;
   }
 }

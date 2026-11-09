@@ -12,6 +12,7 @@ export default function ChatMain({ className }: Props) {
 
   const handler = () => console.log("Button pressed!");
 
+  const expanded = useSidebar((state) => state.expanded);
   const toggleSidebar = useSidebar((state) => state.toggleSidebar);
 
   return (
@@ -30,13 +31,16 @@ export default function ChatMain({ className }: Props) {
       </div> */}
 
       <nav className={styles.nav}>
-        <button
+        {/* <button
           type="button"
           className={styles.hamburgerButton}
           onClick={toggleSidebar}
+          aria-label={expanded ? "Collapse sidebar" : "Open sidebar"}
+          aria-expanded={expanded}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
             height="24px"
             viewBox="0 -960 960 960"
             width="24px"
@@ -44,7 +48,28 @@ export default function ChatMain({ className }: Props) {
           >
             <path d="M160-240q-17 0-28.5-11.5T120-280q0-17 11.5-28.5T160-320h640q17 0 28.5 11.5T840-280q0 17-11.5 28.5T800-240H160Zm0-200q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h640q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440H160Zm0-200q-17 0-28.5-11.5T120-680q0-17 11.5-28.5T160-720h640q17 0 28.5 11.5T840-680q0 17-11.5 28.5T800-640H160Z" />
           </svg>
-        </button>
+        </button> */}
+
+        {!expanded && (
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className={`${styles.iconButton} ${styles.sidebarToggleButton}`}
+            aria-label="Open sidebar"
+            aria-expanded={expanded}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#1f1f1f"
+            >
+              <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm280-80h280v-560H480v560Z" />
+            </svg>
+          </button>
+        )}
 
         {/* <div className="nav-button-group">
           <button

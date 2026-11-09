@@ -523,28 +523,26 @@
   position: relative;
   width: 260px;
   height: 100%;
-  z-index: 99999;
+  z-index: 1001;
   flex-shrink: 0;
   background: #fff;
   overflow: hidden;
   transition:
     transform 300ms ease-in-out,
-    width 300ms ease-in-out,
-    margin 300ms ease-in-out;
+    opacity 300ms ease-in-out;
 }
 
 /* Sidebar opened */
 .expanded {
   transform: translateX(0);
-  width: 260px;
-  margin-left: 0;
+  opacity: 1;
 }
 
 /* Sidebar closed */
 .collapsed {
   transform: translateX(-100%);
-  width: 0;
-  margin-left: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Respect reduced-motion preferences */
