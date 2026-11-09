@@ -5,10 +5,15 @@
   grid-template-columns: 260px 1fr;
 
   /* USE EM */
-  @media (width < 800px) {
-    /* background-color: palegoldenrod; */
+  /* @media (width < 800px) {
+    background-color: palegoldenrod;
     display: block;
-  }
+  } */
+}
+
+.collapse {
+  /* grid-template-columns: 1fr; */
+  display: flex;
 }
 
 .sidebar {
@@ -22,14 +27,15 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+
   /* back
   
   ground-color: #f5f3f2; */ /* VAR THIS - --bg-secondary */
 
   /* USE EM */
-  @media (width < 800px) {
+  /* @media (width < 800px) {
     display: none;
-  }
+  } */
 }
 
 .chat {
@@ -38,3 +44,10 @@
   grid-row-start: 1;
   grid-row-end: 2;
 }
+
+/* .container.collapse {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+} */

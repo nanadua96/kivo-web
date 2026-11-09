@@ -4,7 +4,7 @@
 }
 
 .chat-popover-trigger {
-  display: inline-flex;
+  /* display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 36px;
@@ -14,25 +14,50 @@
   border-radius: 6px;
   background: transparent;
   color: #555;
-  cursor: pointer;
-}
+  cursor: pointer; */
 
+  /* background-color: red; */
+
+  display: flex;
+  align-items: center;
+  /* background-color: red; */
+  height: 28px;
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  transition: all 200ms ease-out;
+
+  /* background-color: r; */
+
+  &:hover {
+    background-color: #dadada;
+  }
+
+  & svg {
+    fill: #adadad;
+    /* fill: cadetblue; */
+    width: 16px;
+    height: 16px;
+  }
+}
+/* 
 .chat-popover-trigger:hover {
   background: #f0f0f0;
   color: #111;
-}
+} */
 
 .chat-popover-menu {
   position: absolute;
   top: calc(100% + 4px);
-  right: 0;
+  left: 0;
+  /* right: 0; */
   z-index: 1000;
-
   display: flex;
   flex-direction: column;
   min-width: 160px;
   padding: 5px;
-
   background: #fff;
   border: 1px solid #e5e5e5;
   border-radius: 10px;
@@ -42,19 +67,24 @@
 .chat-popover-menu button {
   display: flex;
   align-items: center;
-  width: 100%;
   padding: 10px 12px;
-
   border: none;
   border-radius: 6px;
   background: transparent;
   color: #262626;
-
   font: inherit;
   font-size: 14px;
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
+  flex: 1;
+  gap: 8px;
+  /* background-color: red; */
+
+  & svg {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .chat-popover-menu button:hover {
@@ -67,14 +97,18 @@
   outline-offset: 2px;
 }
 
-.chat-popover-divider {
+/* .chat-popover-divider {
   height: 1px;
   margin: 4px 6px;
   background: #eaeaea;
-}
+} */
 
 .chat-popover-menu button.chat-popover-delete {
   color: #dc2626;
+
+  & svg {
+    fill: #dc2626;
+  }
 }
 
 .chat-popover-menu button.chat-popover-delete:hover {

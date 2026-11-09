@@ -1,4 +1,49 @@
-.wrapper {
+/* .wrapper {
   height: 100%;
   width: 100%;
+}
+
+.popover {
+  margin: 0;
+  inset: auto;
+  background-color: palegreen;
+  position-area: right;
+}
+ */
+
+.nav {
+  padding: calc(16rem / 16);
+  display: flex;
+  gap: 10px;
+
+
+  background-color: red;
+}
+
+/* .nav-button-group {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+} */
+
+/* .nav.no-auth {
+  @media (width < 800px) {
+    display: block;
+  }
+} */
+
+.hamburgerButton {
+  cursor: pointer;
+  /* display: none; */
+  justify-content: center;
+  align-items: center;
+  border: 1px solid rgb(211, 211, 211);
+  padding: 8px;
+  padding: var(--12px);
+  border-radius: var(--radius-large);
+  /* box-shadow: rgba(0, 0, 0, 0.15) 0px 8px 16px 0px; */
+
+  @media (width < 800px) {
+    display: block;
+  }
 }

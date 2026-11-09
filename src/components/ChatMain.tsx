@@ -1,14 +1,75 @@
-'use client';
+"use client";
 
-import styles from './ChatMain.module.css';
+import { useSidebar } from "@/store";
+import styles from "./ChatMain.module.css";
 
 type Props = {
   className?: string;
 };
 
 export default function ChatMain({ className }: Props) {
-  return <section className={className ?? ''}></section>;
+  const isAuthenticated = true;
+
+  const handler = () => console.log("Button pressed!");
+
+  const toggleSidebar = useSidebar((state) => state.toggleSidebar);
+
+  return (
+    <section className={className ?? ""}>
+      {/* <button type="button" popoverTarget="test" popoverTargetAction="show">
+        Item 1
+      </button>
+      <div id="test" popover="auto" className={styles.popover}>
+        <button type="button" popoverTargetAction="hide" popoverTarget="test">
+          Hide
+        </button>
+        <ul>
+          <li>Option 1</li>
+          <li>Option 2</li>
+        </ul>
+      </div> */}
+
+      <nav className={styles.nav}>
+        <button
+          type="button"
+          className={styles.hamburgerButton}
+          onClick={toggleSidebar}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="24px"
+            viewBox="0 -960 960 960"
+            width="24px"
+            fill="#1f1f1f"
+          >
+            <path d="M160-240q-17 0-28.5-11.5T120-280q0-17 11.5-28.5T160-320h640q17 0 28.5 11.5T840-280q0 17-11.5 28.5T800-240H160Zm0-200q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h640q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440H160Zm0-200q-17 0-28.5-11.5T120-680q0-17 11.5-28.5T160-720h640q17 0 28.5 11.5T840-680q0 17-11.5 28.5T800-640H160Z" />
+          </svg>
+        </button>
+
+        {/* <div className="nav-button-group">
+          <button
+            type="button"
+            className="btn-base btn-outline"
+            onClick={handler}
+          >
+            Sign up
+          </button>
+          <button
+            type="button"
+            onClick={handler}
+            className="btn-base btn-solid"
+          >
+            Login
+          </button>
+        </div> */}
+      </nav>
+    </section>
+  );
   // return <section className={`${styles.wrapper} ${className ?? ''}`}></section>;
+}
+
+function Button({ label, variant, loading }) {
+  return <button type="button">{label}</button>;
 }
 
 // 'use client';
