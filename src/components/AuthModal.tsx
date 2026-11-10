@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { authClient } from '@/lib/auth-client';
+import { useSidebar } from '@/store';
 import styles from './AuthModal.module.css';
 
 // -----------------------------
@@ -118,9 +119,9 @@ export default function AuthModal({ onClose }: AuthModalProps) {
       //   type: 'sign-in',
       // });
 
-      // const response = await sendOtp(data.email);
+      const response = await sendOtp(data.email);
 
-      // if (!response.data?.success) throw new Error(response.error?.message);
+      if (!response.data?.success) throw new Error(response.error?.message);
 
       otpForm.reset();
 
@@ -137,12 +138,12 @@ export default function AuthModal({ onClose }: AuthModalProps) {
     setServerError('');
 
     try {
-      // const response = await authClient.signIn.emailOtp({
-      //   email,
-      //   otp: data.otp,
-      // });
+      const response = await authClient.signIn.emailOtp({
+        email,
+        otp: data.otp,
+      });
 
-      // if (!response.data?.user) throw new Error(response.error?.message);
+      if (!response.data?.user) throw new Error(response.error?.message);
 
       onClose();
     } catch (error) {
@@ -179,11 +180,13 @@ export default function AuthModal({ onClose }: AuthModalProps) {
     changeView('send-otp');
   };
 
+  const toggleAuthModal = useSidebar((state) => state.toggleAuthModal);
+
   return (
     <div
       className={styles.backdrop}
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget) toggleAuthModal();
       }}
     >
       <section
@@ -195,7 +198,8 @@ export default function AuthModal({ onClose }: AuthModalProps) {
         <button
           type="button"
           className={styles.closeButton}
-          onClick={onClose}
+          onClick={toggleAuthModal}
+          // onClick={onClose}
           aria-label="Close authentication modal"
         >
           <svg viewBox="0 0 24 24" aria-hidden="true">

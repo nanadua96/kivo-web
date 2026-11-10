@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useSidebar } from "@/store";
-import styles from "./ChatMain.module.css";
+import { useSidebar } from '@/store';
+import styles from './ChatMain.module.css';
 
 type Props = {
   className?: string;
@@ -10,13 +10,15 @@ type Props = {
 export default function ChatMain({ className }: Props) {
   const isAuthenticated = true;
 
-  const handler = () => console.log("Button pressed!");
+  const handler = () => console.log('Button pressed!');
 
   const expanded = useSidebar((state) => state.expanded);
   const toggleSidebar = useSidebar((state) => state.toggleSidebar);
 
+  const toggleAuthModal = useSidebar((state) => state.toggleAuthModal);
+
   return (
-    <section className={className ?? ""}>
+    <section className={className ?? ''}>
       {/* <button type="button" popoverTarget="test" popoverTargetAction="show">
         Item 1
       </button>
@@ -71,22 +73,22 @@ export default function ChatMain({ className }: Props) {
           </button>
         )}
 
-        {/* <div className="nav-button-group">
+        <div className="nav-button-group">
           <button
             type="button"
             className="btn-base btn-outline"
-            onClick={handler}
+            onClick={toggleAuthModal}
           >
             Sign up
           </button>
           <button
             type="button"
-            onClick={handler}
+            onClick={toggleAuthModal}
             className="btn-base btn-solid"
           >
             Login
           </button>
-        </div> */}
+        </div>
       </nav>
     </section>
   );

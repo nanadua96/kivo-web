@@ -1,18 +1,22 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useSidebar } from "@/store";
-import styles from "./ChatContainer.module.css";
-import ChatMain from "./ChatMain";
-import ChatSidebar from "./ChatSidebar";
+import { useEffect, useState } from 'react';
+import { useSidebar } from '@/store';
+import AuthModal from './AuthModal';
+import styles from './ChatContainer.module.css';
+import ChatMain from './ChatMain';
+import ChatSidebar from './ChatSidebar';
 
 export function ChatContainer() {
   const expanded = useSidebar((state) => state.expanded);
   const toggleSidebar = useSidebar((state) => state.toggleSidebar);
+
+  const showAuthModal = useSidebar((state) => state.showAuthModal);
+
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    const mobileQuery = window.matchMedia("(max-width: 800px)");
+    const mobileQuery = window.matchMedia('(max-width: 800px)');
 
     const initializeSidebar = () => {
       if (mobileQuery.matches && useSidebar.getState().expanded) {
@@ -23,14 +27,14 @@ export function ChatContainer() {
     };
 
     initializeSidebar();
-    mobileQuery.addEventListener("change", initializeSidebar);
+    mobileQuery.addEventListener('change', initializeSidebar);
 
-    return () => mobileQuery.removeEventListener("change", initializeSidebar);
+    return () => mobileQuery.removeEventListener('change', initializeSidebar);
   }, []);
 
   return (
     <div
-      className={`${styles.container} ${expanded ? "" : styles.collapse} ${initialized ? "" : styles.initializing}`}
+      className={`${styles.container} ${expanded ? '' : styles.collapse} ${initialized ? '' : styles.initializing}`}
     >
       <ChatSidebar className={styles.sidebar} />
       {initialized && expanded && (
@@ -41,7 +45,8 @@ export function ChatContainer() {
           onClick={toggleSidebar}
         />
       )}
-      <ChatMain className={styles.chat} />
+      <ChatMain className={styles.chat} />{' '}
+      {showAuthModal && <AuthModal onClose={() => console.log('Hello')} />}
     </div>
   );
 }
