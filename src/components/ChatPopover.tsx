@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import './ChatPopover.css';
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import "./ChatPopover.css";
 
 type Props = {
   onRename?: () => void;
@@ -63,12 +63,12 @@ export function ChatPopover({
     }
 
     updatePosition();
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
 
     return () => {
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
     };
   }, [isOpen]);
 
@@ -85,10 +85,10 @@ export function ChatPopover({
       setIsOpen(false);
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -96,13 +96,14 @@ export function ChatPopover({
     if (!isOpen) return;
 
     const conversationItem = popoverRef.current?.closest(
-      '[data-conversation-item]',
+      "[data-conversation-item]",
     );
     const menu = menuRef.current;
     if (!conversationItem || !menu) return;
 
-    function handlePointerLeave(event: PointerEvent, otherRegion: Element) {
-      if (event.pointerType === 'touch') return;
+    function handlePointerLeave(event: Event, otherRegion: Element) {
+      if (!(event instanceof PointerEvent)) return;
+      if (event.pointerType === "touch") return;
       const relatedTarget = event.relatedTarget;
       if (
         relatedTarget instanceof Node &&
@@ -113,18 +114,17 @@ export function ChatPopover({
       setIsOpen(false);
     }
 
-    const handleItemLeave = (event: PointerEvent) =>
-      handlePointerLeave(event, menu);
+    const handleItemLeave = (event: Event) => handlePointerLeave(event, menu);
 
-    const handleMenuLeave = (event: PointerEvent) =>
+    const handleMenuLeave = (event: Event) =>
       handlePointerLeave(event, conversationItem);
 
-    conversationItem.addEventListener('pointerleave', handleItemLeave);
-    menu.addEventListener('pointerleave', handleMenuLeave);
+    conversationItem.addEventListener("pointerleave", handleItemLeave);
+    menu.addEventListener("pointerleave", handleMenuLeave);
 
     return () => {
-      conversationItem.removeEventListener('pointerleave', handleItemLeave);
-      menu.removeEventListener('pointerleave', handleMenuLeave);
+      conversationItem.removeEventListener("pointerleave", handleItemLeave);
+      menu.removeEventListener("pointerleave", handleMenuLeave);
     };
   }, [isOpen]);
 
@@ -134,7 +134,10 @@ export function ChatPopover({
   }
 
   return (
-    <div className="chat-popover" ref={popoverRef}>
+    <div
+      className={`chat-popover${isPinned ? " chat-popover--pinned" : ""}`}
+      ref={popoverRef}
+    >
       {/* Button */}
       <button
         ref={triggerRef}
@@ -150,6 +153,7 @@ export function ChatPopover({
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
           viewBox="0 0 24 24"
           height="24px"
           width="24px"
@@ -160,7 +164,7 @@ export function ChatPopover({
       </button>
       {/* Menu */}
       {isOpen &&
-        typeof document !== 'undefined' &&
+        typeof document !== "undefined" &&
         createPortal(
           <div
             ref={menuRef}
@@ -169,7 +173,7 @@ export function ChatPopover({
             style={{
               top: menuPosition?.top ?? 0,
               left: menuPosition?.left ?? 0,
-              visibility: menuPosition ? 'visible' : 'hidden',
+              visibility: menuPosition ? "visible" : "hidden",
             }}
           >
             <button
@@ -179,6 +183,7 @@ export function ChatPopover({
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
                 viewBox="0 0 24 24"
                 height="24px"
                 width="24px"
@@ -198,6 +203,7 @@ export function ChatPopover({
                 {isPinned ? (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
                     viewBox="0 0 24 24"
                     height="24px"
                     width="24px"
@@ -208,6 +214,7 @@ export function ChatPopover({
                 ) : (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
                     viewBox="0 0 24 24"
                     height="24px"
                     width="24px"
@@ -218,7 +225,7 @@ export function ChatPopover({
                 )}
               </span>
 
-              <span>{isPinned ? 'Unpin' : 'Pin'}</span>
+              <span>{isPinned ? "Unpin" : "Pin"}</span>
             </button>
 
             <button
@@ -229,6 +236,7 @@ export function ChatPopover({
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
                 viewBox="0 0 24 24"
                 height="24px"
                 width="24px"

@@ -69,13 +69,28 @@
 .conversationItemButtonGroup {
   display: none;
   flex: 0 0 auto;
-  gap: 8px;
+  /* gap: 8px; */
   align-items: center;
   align-content: center;
 }
 
 .pinnedConversationGroup {
   display: flex;
+}
+
+.pinnedMarker {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.conversationItem[data-conversation-pinned]:hover .pinnedMarker {
+  display: none;
 }
 
 .conversationItemButton {
@@ -103,13 +118,13 @@
   display: flex;
 }
 
-.ai {
-  display: flex;
-}
-
 @media (hover: none), (pointer: coarse) {
   .conversationItemButtonGroup {
     display: flex;
+  }
+
+  .pinnedMarker {
+    display: none;
   }
 
   .conversationItem:hover:not(.selected) {
@@ -638,6 +653,12 @@
   }
 }
 
+.profileFooter {
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding-bottom: var(--12px);
+}
+
 .conversationState {
   display: flex;
   align-items: center;
@@ -674,4 +695,11 @@
   100% {
     transform: rotate(360deg);
   }
+}
+
+.userPopover {
+  background-color: red;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }

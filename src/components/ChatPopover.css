@@ -42,6 +42,23 @@
     height: 16px;
   }
 }
+
+.chat-popover--pinned .chat-popover-trigger {
+  display: none;
+}
+
+[data-conversation-item][data-conversation-pinned]:hover
+  .chat-popover--pinned
+  .chat-popover-trigger {
+  display: flex;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .chat-popover--pinned .chat-popover-trigger {
+    display: flex;
+  }
+}
+
 /* 
 .chat-popover-trigger:hover {
   background: #f0f0f0;

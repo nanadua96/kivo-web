@@ -38,6 +38,7 @@ import { ChatPopover } from './ChatPopover';
 import styles from './ChatSidebar.module.css';
 import { DeleteConversationModal } from './DeleteConversationModal';
 import { RenameConversationModal } from './RenameConversationModal';
+import { UserPopover } from './UserPopover';
 
 const BASE_URL = 'http://127.0.0.1:4000';
 
@@ -337,6 +338,7 @@ export default function ChatSidebar({ className }: Props) {
               <div
                 key={c.id}
                 data-conversation-item
+                data-conversation-pinned={c.pinned ? 'true' : undefined}
                 className={`${styles.conversationItem} ${chatId === c.id ? styles.selected : ''}`}
                 onClick={() => handleChat(c.id)}
               >
@@ -349,17 +351,30 @@ export default function ChatSidebar({ className }: Props) {
                   {c.title}
                 </button>
 
-                {/* {c.pinned && <p style={{ display: 'none' }}>P</p>} */}
-
                 <div
-                  className={styles.conversationItemButtonGroup}
-                  // className={
-                  //   c.pinned
-                  //     ? `${styles.conversationItemButtonGroup} ${styles.ai}`
-                  //     : styles.conversationItemButtonGroup
-                  // }
+                  className={`${styles.conversationItemButtonGroup} ${c.pinned ? styles.pinnedConversationGroup : ''}`}
                 >
-                  {c.pinned && <p className={styles.ai}>p</p>}
+                  {c.pinned && (
+                    <span className={styles.pinnedMarker} aria-label="Pinned">
+                      <div
+                        type="button"
+                        className={styles.conversationItemButton}
+                        title={
+                          c.pinned ? 'Unpin conversation' : 'Pin conversation'
+                        }
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          height="24px"
+                          viewBox="0 -960 960 960"
+                          width="24px"
+                          fill="#1f1f1f"
+                        >
+                          <path d="M640-760v280l68 68q6 6 9 13.5t3 15.5v23q0 17-11.5 28.5T680-320H520v234q0 17-11.5 28.5T480-46q-17 0-28.5-11.5T440-86v-234H280q-17 0-28.5-11.5T240-360v-23q0-8 3-15.5t9-13.5l68-68v-280q-17 0-28.5-11.5T280-800q0-17 11.5-28.5T320-840h320q17 0 28.5 11.5T680-800q0 17-11.5 28.5T640-760Z" />
+                        </svg>
+                      </div>
+                    </span>
+                  )}
 
                   <ChatPopover
                     isPinned={c.pinned}
@@ -435,29 +450,9 @@ export default function ChatSidebar({ className }: Props) {
           </section>
         )}
 
-        <footer className="sidebar-row sidebar-row-4">
-          <button
-            type="button"
-            style={{ display: 'flex', alignItems: 'center', gap: '16px' }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: 'palegoldenrod',
-                height: '32px',
-                aspectRatio: 1,
-                borderRadius: '999px',
-              }}
-            >
-              <p>N</p>
-            </div>
-            <div>
-              <p style={{ fontSize: '14px' }}>nanadua11@outlook.com</p>
-            </div>
-          </button>
-        </footer>
+        <div className={styles.profileFooter}>
+          <UserPopover />
+        </div>
       </aside>
       {conversationToRename && (
         <RenameConversationModal
