@@ -66,6 +66,196 @@
   }
 }
 
+.fileInput {
+  display: none;
+}
+
+.attachmentList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.attachmentItem {
+  display: flex;
+  max-width: min(100%, 240px);
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px 5px 5px;
+  border: 1px solid #e3e5e9;
+  border-radius: 12px;
+  background: #f8f9fb;
+  color: #333842;
+  font-size: 12px;
+
+  & img {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+}
+
+.fileBadge {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 8px;
+  background: #e9ebf0;
+  color: #5b6270;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.attachmentName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.removeAttachment {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: #68707d;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #e8eaf0;
+    color: #20232a;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.composerToolbar {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 10px;
+}
+
+.attachButton {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: #22252b;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #f0f1f3;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #7d8798;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  & svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+}
+
+.sendButton {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  margin-left: auto;
+  border-radius: 50%;
+  background: #17191d;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgb(0 0 0 / 18%);
+
+  &:hover:not(:disabled) {
+    background: #303238;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #707887;
+    outline-offset: 3px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  & svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+}
+
+.attachmentError {
+  flex: 1;
+  color: #bd3434;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.sentAttachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.sentAttachment {
+  display: flex;
+  max-width: 220px;
+  align-items: center;
+  gap: 7px;
+  color: #454b55;
+  font-size: 11px;
+
+  & img {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+
+  & span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 .sidebarToggleButton {
   animation: sidebar-toggle-appear 150ms ease-in-out 150ms both;
 }

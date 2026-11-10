@@ -300,20 +300,28 @@ main {
 /* } */
 
 .input {
-  flex-grow: 1;
-  padding: var(--8px) var(--16px);
-  font-family: 'Inter';
-  font-size: var(--16px);
-  /* padding: 16px;
-  border-radius: 99rem; */
+  display: block;
+  width: 100%;
+  min-height: 36px;
+  max-height: 200px;
+  padding: 0;
+  resize: none;
+  overflow-y: auto;
   border: 0;
-  /* background-color: #315efb; */
+  background: transparent;
+  color: #171717;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.5;
 
   &:focus-visible {
-    /* background-color: red; */
-    border: 0;
     outline: 0;
   }
+}
+
+button {
+  all: unset;
+  cursor: pointer;
 }
 
 .headline {
@@ -322,47 +330,24 @@ main {
 }
 
 .input-wrapper {
-  padding: var(--8px);
-  border-radius: 9999rem;
-  /* background-color: lightseagreen; */
   display: flex;
-  align-items: center;
-  gap: var(--8px);
-  width: 85%;
-  box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.15);
-
-  /* @media (max-width: 1366px) {
-    background-color: red;
-  } */
-}
-
-button {
-  all: unset;
-  cursor: pointer; /* Add back pointer since unset removes it */
-}
-
-.input-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: var(--8px);
-  margin-bottom: var(--16px);
-
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
   width: 100%;
+  margin-block: 8px 16px;
+  padding: 14px 16px 12px;
+  border: 1px solid #e1e2e6;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 6%);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 
-  & button {
-    border-radius: var(--radius-large);
-    background-color: var(--accent);
-    padding: var(--8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    cursor: pointer;
-
-    & svg {
-      fill: white;
-    }
+  &:focus-within {
+    border-color: #c9cbd1;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
   }
 }
 
@@ -416,6 +401,7 @@ button {
   width: 100%;
   max-width: calc(740rem / 16);
   /* max-width: 740px; */
+  padding-inline: 16px;
 }
 
 .chat.empty .chat-container {
@@ -433,6 +419,17 @@ button {
   align-self: center; */
   /* padding-inline: var(--128px);
   padding-inline: 256px; */
+}
+
+@media (max-width: 640px) {
+  .input-container {
+    padding-inline: 12px;
+  }
+
+  .input-wrapper {
+    border-radius: 22px;
+    padding: 12px 13px 10px;
+  }
 }
 
 .hamburger-button {

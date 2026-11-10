@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { SettingsModal } from "./SettingsModal";
 import styles from "./UserPopover.module.css";
 
 export function UserPopover() {
   const { data: session, isPending } = authClient.useSession();
   const [isOpen, setIsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [error, setError] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
@@ -92,15 +94,18 @@ export function UserPopover() {
               {email}
             </span>
           </div>
-          <Link
-            href="/settings"
+          <button
+            type="button"
             className={styles.menuItem}
             role="menuitem"
-            onClick={() => setIsOpen(false)}
+            onClick={() => {
+              setIsOpen(false);
+              setIsSettingsOpen(true);
+            }}
           >
             <SettingsIcon />
             <span>Settings</span>
-          </Link>
+          </button>
           <Link
             href="/faq#feedback"
             className={styles.menuItem}
@@ -127,6 +132,9 @@ export function UserPopover() {
             </p>
           )}
         </div>
+      )}
+      {isSettingsOpen && (
+        <SettingsModal onClose={() => setIsSettingsOpen(false)} />
       )}
     </div>
   );
