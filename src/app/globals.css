@@ -75,7 +75,7 @@
     --bg-primary: #ffffff;
     --accent: #3566f0;
 
-    --font-family: 'Inter', system-ui, sans-serif;
+    --font-family: "Inter", system-ui, sans-serif;
 
     --8px: calc(8rem / 16);
     --12px: calc(12rem / 16);
@@ -94,7 +94,7 @@
 
   body {
     /* font-family: var('--font-primary'); */
-    font-family: 'Inter Tight', system-ui, sans-serif;
+    font-family: "Inter Tight", system-ui, sans-serif;
     /* font-family: var('--font-primary'), system-ui, sans-serif; */
     /* font-family: var('--font-primary'); */
     font-size: var(--16px);
@@ -125,7 +125,7 @@
 .logo {
   font-size: var(--20px);
   font-weight: 700;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: "Inter", system-ui, sans-serif;
   text-transform: uppercase;
   padding-top: 16px;
   color: #171717;
@@ -795,6 +795,15 @@ ol {
   /* background-color: aliceblue; */
 }
 
+.sender-bubble {
+  background-color: #f0efed;
+  color: black;
+  padding: var(--8px) var(--14px);
+  border-radius: 20px;
+  align-self: flex-end;
+  font-size: var(--16px);
+}
+
 .sender-msg-btn-group {
   display: flex;
   justify-content: flex-end;
@@ -827,15 +836,6 @@ ol {
 
   & svg {
   }
-}
-
-.sender-bubble {
-  background-color: #f0efed;
-  color: black;
-  padding: var(--8px) var(--14px);
-  border-radius: 20px;
-  align-self: flex-end;
-  font-size: var(--16px);
 }
 
 .assistant-msg-btn-group {

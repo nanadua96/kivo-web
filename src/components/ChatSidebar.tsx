@@ -21,28 +21,24 @@
 // │   ├── ConversationItem.tsx    # Individual conversation
 // │   └── NewChatButton.tsx       # New chat button
 
-'use client';
+"use client";
 
-import { init } from '@paralleldrive/cuid2';
 import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
-} from '@tanstack/react-query';
-import { createAuthClient } from 'better-auth/client';
-import { useEffect, useRef, useState } from 'react';
-import { api } from '@/lib/api';
-import { useSidebar } from '@/store';
-import AuthModal from './AuthModal';
-import { ChatPopover } from './ChatPopover';
-import styles from './ChatSidebar.module.css';
-import { DeleteConversationModal } from './DeleteConversationModal';
-import { RenameConversationModal } from './RenameConversationModal';
-import { UserPopover } from './UserPopover';
+} from "@tanstack/react-query";
+import { createAuthClient } from "better-auth/client";
+import { useEffect, useRef, useState } from "react";
+import { api } from "@/lib/api";
+import { useSidebar } from "@/store";
+import { ChatPopover } from "./ChatPopover";
+import styles from "./ChatSidebar.module.css";
+import { DeleteConversationModal } from "./DeleteConversationModal";
+import { RenameConversationModal } from "./RenameConversationModal";
+import { UserPopover } from "./UserPopover";
 
-const BASE_URL = 'http://127.0.0.1:4000';
-
-const createId = init({ length: 24 });
+const BASE_URL = "http://127.0.0.1:4000";
 
 const authClient = createAuthClient();
 const CONVERSATION_PAGE_SIZE = 20;
@@ -76,7 +72,7 @@ type Props = {
 };
 
 export default function ChatSidebar({ className }: Props) {
-  const [chatId, setChatId] = useState('new');
+  const [chatId, setChatId] = useState("new");
   const [conversationToRename, setConversationToRename] =
     useState<Conversation | null>(null);
   const [conversationToDelete, setConversationToDelete] =
@@ -87,9 +83,9 @@ export default function ChatSidebar({ className }: Props) {
   const queryClient = useQueryClient();
 
   async function hello() {
-    console.log('Running...');
+    console.log("Running...");
     const a = await authClient.getSession();
-    console.log('🌈🔥💎🔴🔴🧊', a);
+    console.log("🌈🔥💎🔴🔴🧊", a);
 
     if (!a.data) setIsAuthenticated(false);
     else setIsAuthenticated(true);
@@ -97,17 +93,17 @@ export default function ChatSidebar({ className }: Props) {
 
   async function ping() {
     try {
-      const res = await fetch(BASE_URL + '/ping');
+      const res = await fetch(BASE_URL + "/ping");
 
       if (!res.ok) {
-        console.log('[/ping] error:');
+        console.log("[/ping] error:");
         console.log(res);
         return;
       }
 
-      console.log('Server ping success');
+      console.log("Server ping success");
     } catch (error) {
-      console.log('[/ping] error:', error);
+      console.log("[/ping] error:", error);
     }
   }
 
@@ -120,11 +116,11 @@ export default function ChatSidebar({ className }: Props) {
   const toggleSidebar = useSidebar((state) => state.toggleSidebar);
 
   const conversationQuery = useInfiniteQuery({
-    queryKey: ['conversations'],
+    queryKey: ["conversations"],
     initialPageParam: 1,
     queryFn: async ({ pageParam }) => {
       const { data } = await api.get<ConversationPageResponse>(
-        '/api/v1/conversations',
+        "/api/v1/conversations",
         {
           params: { page: pageParam, limit: CONVERSATION_PAGE_SIZE },
         },
@@ -137,7 +133,7 @@ export default function ChatSidebar({ className }: Props) {
     getNextPageParam: (lastPage) => lastPage.nextPage,
   });
 
-  console.log('🚨', conversationQuery.data);
+  console.log("🚨", conversationQuery.data);
 
   const conversations =
     conversationQuery.data?.pages.flatMap((page) => page.docs) ?? [];
@@ -161,7 +157,7 @@ export default function ChatSidebar({ className }: Props) {
           void conversationQuery.fetchNextPage();
         }
       },
-      { root, rootMargin: '0px 0px 120px 0px' },
+      { root, rootMargin: "0px 0px 120px 0px" },
     );
 
     observer.observe(sentinel);
@@ -175,7 +171,7 @@ export default function ChatSidebar({ className }: Props) {
 
   const renameMutation = useMutation({
     mutationFn: async ({ id, newTitle }: { id: string; newTitle: string }) => {
-      console.log('WATCH ME', { id, newTitle });
+      console.log("WATCH ME", { id, newTitle });
       return api.post(`/api/v1/conversations/${id}/rename`, {
         title: newTitle,
       });
@@ -184,11 +180,11 @@ export default function ChatSidebar({ className }: Props) {
     //   console.log('[conversation:rename] started', variables);
     // },
     onSuccess: (result, variables) => {
-      console.log('[conversation:rename] succeeded', { variables, result });
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      console.log("[conversation:rename] succeeded", { variables, result });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
     onError: (error, variables) => {
-      console.error('[conversation:rename] failed', { variables, error });
+      console.error("[conversation:rename] failed", { variables, error });
     },
     // onSettled: (result, error, variables) => {
     //   console.log('[conversation:rename] settled', {
@@ -203,17 +199,17 @@ export default function ChatSidebar({ className }: Props) {
     mutationFn: async (id: string) =>
       api.post(`/api/v1/conversations/${id}/pin`),
     onMutate: (id) => {
-      console.log('[conversation:pin] started', { id });
+      console.log("[conversation:pin] started", { id });
     },
     onSuccess: (result, id) => {
-      console.log('[conversation:pin] succeeded', { id, result });
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      console.log("[conversation:pin] succeeded", { id, result });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
     onError: (error, id) => {
-      console.error('[conversation:pin] failed', { id, error });
+      console.error("[conversation:pin] failed", { id, error });
     },
     onSettled: (result, error, id) => {
-      console.log('[conversation:pin] settled', { id, result, error });
+      console.log("[conversation:pin] settled", { id, result, error });
     },
   });
 
@@ -222,17 +218,17 @@ export default function ChatSidebar({ className }: Props) {
       return api.delete(`/api/v1/conversations/${id}`);
     },
     onMutate: (id) => {
-      console.log('[conversation:delete] started', { id });
+      console.log("[conversation:delete] started", { id });
     },
     onSuccess: (result, id) => {
-      console.log('[conversation:delete] succeeded', { id, result });
-      void queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      console.log("[conversation:delete] succeeded", { id, result });
+      void queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
     onError: (error, id) => {
-      console.error('[conversation:delete] failed', { id, error });
+      console.error("[conversation:delete] failed", { id, error });
     },
     onSettled: (result, error, id) => {
-      console.log('[conversation:delete] settled', { id, result, error });
+      console.log("[conversation:delete] settled", { id, result, error });
     },
   });
 
@@ -243,7 +239,7 @@ export default function ChatSidebar({ className }: Props) {
   return (
     <>
       <aside
-        className={` ${styles.sidebar} ${expanded ? styles.expanded : styles.collapsed} ${className ?? ''}`}
+        className={` ${styles.sidebar} ${expanded ? styles.expanded : styles.collapsed} ${className ?? ""}`}
         aria-hidden={!expanded}
         inert={!expanded}
       >
@@ -338,8 +334,8 @@ export default function ChatSidebar({ className }: Props) {
               <div
                 key={c.id}
                 data-conversation-item
-                data-conversation-pinned={c.pinned ? 'true' : undefined}
-                className={`${styles.conversationItem} ${chatId === c.id ? styles.selected : ''}`}
+                data-conversation-pinned={c.pinned ? "true" : undefined}
+                className={`${styles.conversationItem} ${chatId === c.id ? styles.selected : ""}`}
                 onClick={() => handleChat(c.id)}
               >
                 <button
@@ -352,7 +348,7 @@ export default function ChatSidebar({ className }: Props) {
                 </button>
 
                 <div
-                  className={`${styles.conversationItemButtonGroup} ${c.pinned ? styles.pinnedConversationGroup : ''}`}
+                  className={`${styles.conversationItemButtonGroup} ${c.pinned ? styles.pinnedConversationGroup : ""}`}
                 >
                   {c.pinned && (
                     <span className={styles.pinnedMarker} aria-label="Pinned">
@@ -360,7 +356,7 @@ export default function ChatSidebar({ className }: Props) {
                         type="button"
                         className={styles.conversationItemButton}
                         title={
-                          c.pinned ? 'Unpin conversation' : 'Pin conversation'
+                          c.pinned ? "Unpin conversation" : "Pin conversation"
                         }
                       >
                         <svg

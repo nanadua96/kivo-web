@@ -277,3 +277,110 @@
     animation: none;
   }
 }
+
+.wrapper {
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  overflow: hidden;
+  /* max-width: 46.25rem; */
+}
+
+.chatContainer {
+  /* padding: var(--16px) var(--64px); */
+  /* gap: var(--48px); */
+  /* flex-direction: column; */
+  /* display: flex; */
+  overflow-y: auto;
+  /* max-width: 46.25rem; */
+  /* justify-self: center; */
+  width: 100%;
+  /* background-color: red; */
+  display: flex;
+  justify-content: center;
+
+  /* scrollbar-color: #0b4f4a #5f9e98; */
+  /* scrollbar-width: thin; */
+  scrollbar-width: none;
+}
+
+.chatWrapper {
+  /* padding: var(--16px) var(--64px); */
+  /* gap: var(--48px); */
+  /* flex-direction: column; */
+  /* display: flex; */
+  /* overflow-y: auto; */
+
+  /* max-width: 46.25rem; */
+  /* justify-self: center; */
+
+  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  max-width: 43rem;
+}
+
+/* Markdown */
+.markdownBody {
+  align-self: flex-start;
+  gap: var(--16px);
+  flex-direction: column;
+  width: 100%;
+  display: flex;
+  /* background-color: palegreen; */
+}
+
+/* Send message bubble */
+
+.senderBubbleWrapper {
+  /* width: 75%; */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  /* background-color: aliceblue; */
+}
+
+.senderBubbleWrapper:hover .senderBubbleButtonGroup {
+  opacity: 1;
+}
+
+.senderBubble {
+  background-color: #f0efed;
+  color: black;
+  padding: var(--8px) var(--14px);
+  border-radius: 20px;
+  /* align-self: flex-end; */
+  font-size: var(--16px);
+  max-width: 75%;
+}
+
+.senderBubbleButtonGroup {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+}
+
+.senderBubbleButtonGroup button {
+  font-size: var(--14px);
+  display: flex;
+  align-items: center;
+  gap: var(--8px);
+  /* padding: var(--8px); */
+  justify-content: center;
+  height: 32px;
+  width: 32px;
+  border-radius: var(--8px);
+  transition: background-color 200ms ease-out;
+
+  & svg {
+    width: 18px;
+    height: 18px;
+    fill: #686868;
+  }
+
+  &:hover {
+    background-color: whitesmoke;
+  }
+}
