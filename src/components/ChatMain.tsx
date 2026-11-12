@@ -213,9 +213,11 @@ export default function ChatMain({ className }: Props) {
 
   async function handleSendMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // if (!input.trim() || isStreaming) return;
+
+    if (!input.trim() || isStreaming) return;
 
     const inputValue = input.trim();
+
     if ((!inputValue && selectedAttachments.length === 0) || isPending) return;
 
     setIsPending(true);
@@ -448,6 +450,8 @@ export default function ChatMain({ className }: Props) {
   const [editText, setEditText] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
+  const [edit, setEdit] = useState({ showEditInput: false, text: "" });
+
   function toggleEdit(content: string) {
     setEditText(content);
     setIsEditing(!isEditing);
@@ -464,6 +468,34 @@ export default function ChatMain({ className }: Props) {
   //     setEditText("");
   // toggleEdit("")
   //   }
+
+  function handlePrompt(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const inputValue = inputRef.current?.value as string;
+    console.log(inputValue);
+
+    addMessages([
+      {
+        id: "1",
+        role: "user",
+        content: inputValue,
+      },
+      {
+        id: "2",
+        role: "assistant",
+        content: "",
+      },
+    ]);
+
+    setIsStreaming(true);
+    setIsPending(true);
+
+    setTimeout(() => {
+      updateMessage("2", "Hello there!");
+      setIsStreaming(false);
+      setIsPending(false);
+    }, 2000);
+  }
 
   return (
     <section
@@ -780,7 +812,8 @@ export default function ChatMain({ className }: Props) {
           </div>
         )}
 
-        <form className="input-wrapper" onSubmit={foo}>
+        <form className="input-wrapper" onSubmit={handlePrompt}>
+          {/* <form className="input-wrapper" onSubmit={foo}> */}
           {/* <form className="input-wrapper" onSubmit={handleSendMessage}> */}
           <input
             ref={fileInputRef}

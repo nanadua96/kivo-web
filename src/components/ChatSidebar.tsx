@@ -32,6 +32,7 @@ import { createAuthClient } from "better-auth/client";
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useSidebar } from "@/store";
+import { useMessages } from "@/store/message.store";
 import { ChatPopover } from "./ChatPopover";
 import styles from "./ChatSidebar.module.css";
 import { DeleteConversationModal } from "./DeleteConversationModal";
@@ -73,14 +74,21 @@ type Props = {
 
 export default function ChatSidebar({ className }: Props) {
   const [chatId, setChatId] = useState("new");
+
   const [conversationToRename, setConversationToRename] =
     useState<Conversation | null>(null);
+
   const [conversationToDelete, setConversationToDelete] =
     useState<Conversation | null>(null);
+
   const [isAuthenticated, setIsAuthenticated] = useState(false); //! GET FROM AUTH CLIENT
+
   const conversationListRef = useRef<HTMLElement>(null);
   const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
+
   const queryClient = useQueryClient();
+
+  const clearMessages = useMessages((state) => state.clearMessages);
 
   async function hello() {
     console.log("Running...");
@@ -236,6 +244,10 @@ export default function ChatSidebar({ className }: Props) {
     setChatId(id);
   }
 
+  function handleNewChat() {
+    clearMessages();
+  }
+
   return (
     <>
       <aside
@@ -298,7 +310,7 @@ export default function ChatSidebar({ className }: Props) {
 
         <section className="sidebar-row-2">
           <button
-            // onClick={handleNewChat}
+            onClick={handleNewChat}
             type="button"
             className={styles.newChatButton}
           >
