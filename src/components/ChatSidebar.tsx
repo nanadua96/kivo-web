@@ -29,6 +29,8 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { createAuthClient } from "better-auth/client";
+import { usePathname, useRouter } from "next/navigation";
+import { Router } from "next/router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useSidebar } from "@/store";
@@ -71,9 +73,10 @@ type ConversationPage = {
 
 type Props = {
   className?: string;
+  conversationId: string
 };
 
-export default function ChatSidebar({ className }: Props) {
+export default function ChatSidebar({ className , conversationId}: Props) {
   const [chatId, setChatId] = useState("new");
 
   const [conversationToRename, setConversationToRename] =
@@ -84,8 +87,6 @@ export default function ChatSidebar({ className }: Props) {
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false); //! GET FROM AUTH CLIENT
-
   const conversationListRef = useRef<HTMLElement>(null);
   const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
 
@@ -93,37 +94,8 @@ export default function ChatSidebar({ className }: Props) {
 
   const clearMessages = useMessages((state) => state.clearMessages);
 
-  async function hello() {
-    console.log("Running...");
-    const a = await authClient.getSession();
-    console.log("🌈🔥💎🔴🔴🧊", a);
-
-    if (!a.data) setIsAuthenticated(false);
-    else setIsAuthenticated(true);
-  }
-
-  async function ping() {
-    try {
-      const res = await fetch(BASE_URL + "/ping");
-
-      if (!res.ok) {
-        console.log("[/ping] error:");
-        console.log(res);
-        return;
-      }
-
-      console.log("Server ping success");
-    } catch (error) {
-      console.log("[/ping] error:", error);
-    }
-  }
-
-  useEffect(() => {
-    hello();
-    ping();
-  }, []);
-
   const expanded = useSidebar((state) => state.expanded);
+
   const toggleSidebar = useSidebar((state) => state.toggleSidebar);
 
   const conversationQuery = useInfiniteQuery({
@@ -144,8 +116,6 @@ export default function ChatSidebar({ className }: Props) {
     getNextPageParam: (lastPage) => lastPage.nextPage,
   });
 
-  console.log("🚨", conversationQuery.data);
-
   const conversations =
     conversationQuery.data?.pages.flatMap((page) => page.docs) ?? [];
 
@@ -165,7 +135,7 @@ export default function ChatSidebar({ className }: Props) {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry?.isIntersecting) {
-          void conversationQuery.fetchNextPage();
+          conversationQuery.fetchNextPage();
         }
       },
       { root, rootMargin: "0px 0px 120px 0px" },
@@ -243,11 +213,25 @@ export default function ChatSidebar({ className }: Props) {
     },
   });
 
-  function handleChat(id: string) {
+  const router = useRouter();
+
+
+    const pathname = usePathname();
+    
+console.log("🌄",pathname.replace('/c/', ""));
+
+
+const currentPathId =pathname.replace('/c/', "")
+console.log("⚡",{conversationId,  currentPathId});
+
+
+  async function handleChat(id: string) {
     setChatId(id);
+    router.replace(`/c/${id}`);
   }
 
   const closeSearch = useCallback(() => setIsSearchOpen(false), []);
+
   const selectSearchResult = useCallback((id: string) => {
     setChatId(id);
     setIsSearchOpen(false);
@@ -260,7 +244,7 @@ export default function ChatSidebar({ className }: Props) {
   return (
     <>
       <aside
-        className={` ${styles.sidebar} ${expanded ? styles.expanded : styles.collapsed} ${className ?? ""}`}
+        className={`${styles.sidebar} ${expanded ? styles.expanded : styles.collapsed} ${className ?? ""}`}
         aria-hidden={!expanded}
         inert={!expanded}
       >
@@ -359,7 +343,8 @@ export default function ChatSidebar({ className }: Props) {
                 key={c.id}
                 data-conversation-item
                 data-conversation-pinned={c.pinned ? "true" : undefined}
-                className={`${styles.conversationItem} ${chatId === c.id ? styles.selected : ""}`}
+                className={`${styles.conversationItem} ${conversationId === currentPathId ? styles.selected : ""}`}
+                // className={`${styles.conversationItem} ${chatId === c.id ? styles.selected : ""}`}
                 onClick={() => handleChat(c.id)}
               >
                 <button
@@ -475,10 +460,7 @@ export default function ChatSidebar({ className }: Props) {
         </div>
       </aside>
       {isSearchOpen && (
-        <SearchModal
-          onClose={closeSearch}
-          onSelect={selectSearchResult}
-        />
+        <SearchModal onClose={closeSearch} onSelect={selectSearchResult} />
       )}
       {conversationToRename && (
         <RenameConversationModal

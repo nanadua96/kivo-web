@@ -7,11 +7,13 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useSidebar } from "@/store";
 import { useMessages } from "@/store/message.store";
+import type { Messages } from "@/types/message.types";
 import styles from "./ChatMain.module.css";
 import Markdown, { ThinkingIndicator } from "./Markdown";
 
 type Props = {
   className?: string;
+  conversationId: string;
 };
 
 type SelectedAttachment = {
@@ -89,13 +91,14 @@ function readAsDataUrl(file: File) {
   });
 }
 
-export default function ChatMain({ className }: Props) {
+export default function ChatMain({ className, conversationId }: Props) {
   // =============================
   // SIDEBAR
   // =============================
   const expanded = useSidebar((state) => state.expanded);
   const toggleSidebar = useSidebar((state) => state.toggleSidebar);
 
+  const initMessages = useMessages((state) => state.initMessages);
   const messages = useMessages((state) => state.messages);
   const addMessages = useMessages((state) => state.addMessages);
   const updateMessage = useMessages((state) => state.updateMessage);
@@ -119,6 +122,24 @@ export default function ChatMain({ className }: Props) {
     input.trim().length === 0 && selectedAttachments.length === 0;
 
   const selectedAttachmentsRef = useRef<SelectedAttachment[]>([]);
+
+  useEffect(() => {
+    async function test() {
+      try {
+        const { data } = await api.get<Messages>(
+          `/api/v1/conversations/${conversationId}/messages`,
+        );
+
+        console.log("🔥", data);
+
+        initMessages(data);
+      } catch (error) {
+        console.log("Error", error);
+      }
+    }
+
+    test();
+  }, []);
 
   useEffect(() => {
     selectedAttachmentsRef.current = selectedAttachments;

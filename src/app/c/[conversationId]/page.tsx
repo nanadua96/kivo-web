@@ -1,6 +1,9 @@
 import { Suspense } from "react";
 import { ChatContainer } from "@/components/ChatContainer";
-import styles from "./page.module.css";
+
+// import { ChatContainer } from "@/components/ChatContainer";
+
+// import styles from "./page.module.css";
 
 type Props = {
   params: Promise<{
@@ -8,16 +11,14 @@ type Props = {
   }>;
 };
 
-export default async function HomePage({ params }: Props) {
+export default async function ({ params }: Props) {
   const { conversationId } = await params;
 
   return (
-    <main className={styles.root}>
-      {/* <Suspense fallback={<p>Loading...</p>}>
-        <ChatContainer />
-      </Suspense> */}
-
-      <p>Conversation ID: {conversationId}</p>
-    </main>
+    <Suspense fallback={<p>Loading...</p>}>
+      <Suspense fallback={<p>Loading...</p>}>
+        <ChatContainer conversationId={conversationId} />
+      </Suspense>
+    </Suspense>
   );
 }

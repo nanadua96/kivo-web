@@ -6,7 +6,7 @@ export default async function HomePage() {
   return (
     <main className={styles.root}>
       <Suspense fallback={<p>Loading...</p>}>
-        <ChatContainer />
+        <ChatContainer conversationId="new" />
       </Suspense>
     </main>
   );

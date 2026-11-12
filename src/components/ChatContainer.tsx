@@ -1,13 +1,18 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useSidebar } from '@/store';
-import AuthModal from './AuthModal';
-import styles from './ChatContainer.module.css';
-import ChatMain from './ChatMain';
-import ChatSidebar from './ChatSidebar';
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useSidebar } from "@/store";
+import AuthModal from "./AuthModal";
+import styles from "./ChatContainer.module.css";
+import ChatMain from "./ChatMain";
+import ChatSidebar from "./ChatSidebar";
 
-export function ChatContainer() {
+type Props = {
+  conversationId: string;
+};
+
+export function ChatContainer({ conversationId }: Props) {
   const expanded = useSidebar((state) => state.expanded);
   const toggleSidebar = useSidebar((state) => state.toggleSidebar);
 
@@ -15,8 +20,12 @@ export function ChatContainer() {
 
   const [initialized, setInitialized] = useState(false);
 
+  // const messagesQuery = useQuery({
+  //   queryKey: ["messages", conversationId],
+  // });
+
   useEffect(() => {
-    const mobileQuery = window.matchMedia('(max-width: 800px)');
+    const mobileQuery = window.matchMedia("(max-width: 800px)");
 
     const initializeSidebar = () => {
       if (mobileQuery.matches && useSidebar.getState().expanded) {
@@ -27,16 +36,16 @@ export function ChatContainer() {
     };
 
     initializeSidebar();
-    mobileQuery.addEventListener('change', initializeSidebar);
+    mobileQuery.addEventListener("change", initializeSidebar);
 
-    return () => mobileQuery.removeEventListener('change', initializeSidebar);
+    return () => mobileQuery.removeEventListener("change", initializeSidebar);
   }, []);
 
   return (
     <div
-      className={`${styles.container} ${expanded ? '' : styles.collapse} ${initialized ? '' : styles.initializing}`}
+      className={`${styles.container} ${expanded ? "" : styles.collapse} ${initialized ? "" : styles.initializing}`}
     >
-      <ChatSidebar className={styles.sidebar} />
+      <ChatSidebar className={styles.sidebar}  conversationId={conversationId}/>
       {initialized && expanded && (
         <button
           type="button"
@@ -45,8 +54,8 @@ export function ChatContainer() {
           onClick={toggleSidebar}
         />
       )}
-      <ChatMain className={styles.chat} />{' '}
-      {showAuthModal && <AuthModal onClose={() => console.log('Hello')} />}
+      <ChatMain className={styles.chat} conversationId={conversationId} />
+      {showAuthModal && <AuthModal onClose={() => console.log("Hello")} />}
     </div>
   );
 }

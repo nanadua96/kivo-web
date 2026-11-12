@@ -4,6 +4,7 @@ import type { Message, Messages } from "@/types/message.types";
 type MessagesState = {
   messages: Messages;
 
+  initMessages: (message: Messages) => void;
   addMessage: (message: Message) => void;
   addMessages: (messages: Messages) => void;
   updateMessage: (id: string, content: string) => void;
@@ -13,6 +14,8 @@ type MessagesState = {
 
 export const useMessages = create<MessagesState>((set) => ({
   messages: [],
+
+  initMessages: (messages) => set({ messages }),
 
   addMessage: (message) =>
     set((state) => ({ messages: [...state.messages, message] })),
