@@ -19,8 +19,11 @@ type MarkdownProps = {
 
 function CodeBlock({ children }: { children: ReactNode }) {
   const codeRef = useRef<HTMLPreElement>(null);
+
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [copyStatus, setCopyStatus] = useState("Copy");
+
   const codeClassName = isValidElement<{ className?: string }>(children)
     ? children.props.className
     : undefined;
@@ -35,6 +38,7 @@ function CodeBlock({ children }: { children: ReactNode }) {
 
   async function copyCode() {
     const code = codeRef.current?.textContent;
+
     if (code === undefined || code === null) {
       setCopyStatus("Copy failed");
       return;
@@ -49,6 +53,7 @@ function CodeBlock({ children }: { children: ReactNode }) {
     }
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
     timeoutRef.current = setTimeout(() => setCopyStatus("Copy"), 1800);
   }
 
@@ -95,12 +100,15 @@ const markdownComponents: Components = {
       </a>
     );
   },
+
   blockquote({ children }) {
     return <blockquote className={styles.blockquote}>{children}</blockquote>;
   },
+
   li({ children }) {
     return <li className={styles.listItem}>{children}</li>;
   },
+
   ol({ children, start }) {
     return (
       <ol className={styles.orderedList} start={start}>
@@ -108,9 +116,11 @@ const markdownComponents: Components = {
       </ol>
     );
   },
+
   pre({ children }) {
     return <CodeBlock>{children}</CodeBlock>;
   },
+
   table({ children }) {
     return (
       <section className={styles.tableScroll} aria-label="Scrollable table">
@@ -118,6 +128,7 @@ const markdownComponents: Components = {
       </section>
     );
   },
+
   ul({ children }) {
     return <ul className={styles.unorderedList}>{children}</ul>;
   },

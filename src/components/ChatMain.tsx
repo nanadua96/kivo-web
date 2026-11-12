@@ -107,6 +107,7 @@ export default function ChatMain({ className }: Props) {
   const messages = useMessages((state) => state.messages);
   const addMessages = useMessages((state) => state.addMessages);
   const addMessage = useMessages((state) => state.addMessage);
+  const updateMessage = useMessages((state) => state.updateMessage);
 
   console.log("📀 Messages:", messages);
 
@@ -444,13 +445,29 @@ export default function ChatMain({ className }: Props) {
     });
   }
 
+  const [editText, setEditText] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+
+  function toggleEdit(content: string) {
+    setEditText(content);
+    setIsEditing(!isEditing);
+  }
+
+  function handleEditSubmit() {
+    console.log("🌈 Edited prompt:", editText);
+    toggleEdit("");
+
+    // sumbit code goes here
+  }
+
+  //   function handleCancelEdit(text: string) {
+  //     setEditText("");
+  // toggleEdit("")
+  //   }
+
   return (
     <section
-      className={
-        messages.length === 0
-          ? `chat empty ${className ?? ""}`
-          : `${styles.wrapper} ${className ?? ""}`
-      }
+      className={`${className ?? ""} ${styles.container} ${messages.length === 0 ? styles.empty : ""} `}
     >
       <nav className={styles.nav}>
         {/* <button
@@ -513,170 +530,207 @@ export default function ChatMain({ className }: Props) {
         </div>
       </nav>
       {/* ============= Body =============*/}
-      <div className={styles.chatContainer}>
-        <ThinkingIndicator />
-        <div className={styles.chatWrapper}>
-          {messages.map((message, index) => {
-            const messageId = message.id;
+      {messages.length > 0 && (
+        <div className={styles.chatContainer}>
+          <div className={styles.chatWrapper}>
+            {messages.map((message, index) => {
+              const messageId = message.id;
 
-            const { id, role, content } = message;
+              const { id, role, content } = message;
 
-            // User bubble
-            if (role === "user") {
-              return (
-                // <div key={id} className={styles.senderBubbleContainer}>
-                <div className={styles.senderBubbleWrapper}>
-                  <div className={styles.senderBubble}>
-                    <p>{content}</p>
-                    {message.attachments && message.attachments.length > 0 && (
-                      <div className={styles.sentAttachments}>
-                        {message.attachments.map((attachment) => (
-                          <div
-                            key={`${attachment.name}-${attachment.type}`}
-                            className={styles.sentAttachment}
-                          >
-                            {attachment.data && (
-                              <Image
-                                src={attachment.data}
-                                alt={attachment.name}
-                                width={42}
-                                height={42}
-                                unoptimized
-                              />
-                            )}
-                            <span>{attachment.name}</span>
-                          </div>
-                        ))}
+              // User bubble
+              if (role === "user") {
+                // Show edit
+                if (isEditing) {
+                  return (
+                    <div key={id} className={styles.userBubbleEdit}>
+                      <div className={styles.userBubble}>
+                        <input
+                          value={editText}
+                          onChange={(e) => {
+                            setEditText(e.target.value);
+                            console.log("User is typing:", e.target.value);
+                          }}
+                        />
                       </div>
-                    )}
-                  </div>
-                  <div className={styles.senderBubbleButtonGroup}>
-                    <button
-                      onClick={() => handleCopy(message.content)}
-                      type="button"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        height="24px"
-                        viewBox="0 -960 960 960"
-                        width="24px"
-                        fill="#1f1f1f"
-                      >
-                        <path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-520q0-17 11.5-28.5T160-720q17 0 28.5 11.5T200-680v520h400q17 0 28.5 11.5T640-120q0 17-11.5 28.5T600-80H200Zm160-240v-480 480Z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => console.log("Hello world!")}
-                      type="button"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        height="24px"
-                        viewBox="0 -960 960 960"
-                        width="24px"
-                        fill="#1f1f1f"
-                      >
-                        <path d="M200-200h57l391-391-57-57-391 391v57Zm-40 80q-17 0-28.5-11.5T120-160v-97q0-16 6-30.5t17-25.5l505-504q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L313-143q-11 11-25.5 17t-30.5 6h-97Zm600-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                // </div>
-              );
-            }
+                      <div className={styles.userBubbleButtonGroup}>
+                        <button onClick={() => toggleEdit("")} type="button">
+                          Cancel
+                          {/* <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="24px"
+                            viewBox="0 -960 960 960"
+                            width="24px"
+                            fill="#1f1f1f"
+                          >
+                            <path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-520q0-17 11.5-28.5T160-720q17 0 28.5 11.5T200-680v520h400q17 0 28.5 11.5T640-120q0 17-11.5 28.5T600-80H200Zm160-240v-480 480Z" />
+                          </svg> */}
+                        </button>
+                        <button onClick={handleEditSubmit} type="button">
+                          Done
+                          {/* <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="24px"
+                            viewBox="0 -960 960 960"
+                            width="24px"
+                            fill="#1f1f1f"
+                          >
+                            <path d="M200-200h57l391-391-57-57-391 391v57Zm-40 80q-17 0-28.5-11.5T120-160v-97q0-16 6-30.5t17-25.5l505-504q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L313-143q-11 11-25.5 17t-30.5 6h-97Zm600-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
+                          </svg> */}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
 
-            if (message.role === "assistant") {
-              return (
-                <div
-                  key={index}
-                  // style={{ alignSelf: "flex-start" }}
-                  className={styles.markdownBody}
-                  // className="markdown-body"
-                >
-                  <Markdown>{message.content}</Markdown>
-
-                  {/* <Markdown>{message.content}</Markdown> */}
-                  <div className="assistant-msg-btn-group">
-                    <button
-                      onClick={() => handleCopy(message.content)}
-                      type="button"
-                      className="sender-msg-btn"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        height="24px"
-                        viewBox="0 -960 960 960"
-                        width="24px"
-                        fill="#1f1f1f"
+                return (
+                  <div key={id} className={styles.senderBubbleWrapper}>
+                    <div className={styles.senderBubble}>
+                      <p>{content}</p>
+                      {message.attachments &&
+                        message.attachments.length > 0 && (
+                          <div className={styles.sentAttachments}>
+                            {message.attachments.map((attachment) => (
+                              <div
+                                key={`${attachment.name}-${attachment.type}`}
+                                className={styles.sentAttachment}
+                              >
+                                {attachment.data && (
+                                  <Image
+                                    src={attachment.data}
+                                    alt={attachment.name}
+                                    width={42}
+                                    height={42}
+                                    unoptimized
+                                  />
+                                )}
+                                <span>{attachment.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                    </div>
+                    <div className={styles.senderBubbleButtonGroup}>
+                      <button
+                        onClick={() => handleCopy(message.content)}
+                        type="button"
                       >
-                        <path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-520q0-17 11.5-28.5T160-720q17 0 28.5 11.5T200-680v520h400q17 0 28.5 11.5T640-120q0 17-11.5 28.5T600-80H200Zm160-240v-480 480Z" />
-                      </svg>
-                    </button>
-                    {/* Rating up */}
-                    <button
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          height="24px"
+                          viewBox="0 -960 960 960"
+                          width="24px"
+                          fill="#1f1f1f"
+                        >
+                          <path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-520q0-17 11.5-28.5T160-720q17 0 28.5 11.5T200-680v520h400q17 0 28.5 11.5T640-120q0 17-11.5 28.5T600-80H200Zm160-240v-480 480Z" />
+                        </svg>
+                      </button>
+                      <button onClick={() => toggleEdit(content)} type="button">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          height="24px"
+                          viewBox="0 -960 960 960"
+                          width="24px"
+                          fill="#1f1f1f"
+                        >
+                          <path d="M200-200h57l391-391-57-57-391 391v57Zm-40 80q-17 0-28.5-11.5T120-160v-97q0-16 6-30.5t17-25.5l505-504q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L313-143q-11 11-25.5 17t-30.5 6h-97Zm600-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+
+              if (message.role === "assistant") {
+                return (
+                  <div
+                    key={index}
+                    // style={{ alignSelf: "flex-start" }}
+                    className={styles.markdownBody}
+                    // className="markdown-body"
+                  >
+                    <Markdown>{message.content}</Markdown>
+                    <div className="assistant-msg-btn-group">
+                      <button
+                        onClick={() => handleCopy(message.content)}
+                        type="button"
+                        className="sender-msg-btn"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          height="24px"
+                          viewBox="0 -960 960 960"
+                          width="24px"
+                          fill="#1f1f1f"
+                        >
+                          <path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-520q0-17 11.5-28.5T160-720q17 0 28.5 11.5T200-680v520h400q17 0 28.5 11.5T640-120q0 17-11.5 28.5T600-80H200Zm160-240v-480 480Z" />
+                        </svg>
+                      </button>
+                      {/* Rating up */}
+                      <button
+                        onClick={() => {
+                          if (messageId) rateMessage(messageId, "up");
+                        }}
+                        disabled={!messageId}
+                        type="button"
+                        className="sender-msg-btn"
+                      >
+                        {message?.rating === "up" ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="24px"
+                            viewBox="0 -960 960 960"
+                            width="24px"
+                            fill="#1f1f1f"
+                          >
+                            <path d="M840-640q32 0 56 24t24 56v80q0 7-1.5 15t-4.5 15L794-168q-9 20-30 34t-44 14H400q-33 0-56.5-23.5T320-200v-407q0-16 6.5-30.5T344-663l217-216q15-14 35.5-17t39.5 7q19 10 27.5 28t3.5 37l-45 184h218ZM160-120q-33 0-56.5-23.5T80-200v-360q0-33 23.5-56.5T160-640q33 0 56.5 23.5T240-560v360q0 33-23.5 56.5T160-120Z" />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="24px"
+                            viewBox="0 -960 960 960"
+                            width="24px"
+                            fill="#1f1f1f"
+                          >
+                            <path d="M840-640q32 0 56 24t24 56v80q0 7-2 15t-4 15L794-168q-9 20-30 34t-44 14H280v-520l240-238q15-15 35.5-17.5T595-888q19 10 28 28t4 37l-45 183h258Zm-480 34v406h360l120-280v-80H480l54-220-174 174ZM160-120q-33 0-56.5-23.5T80-200v-360q0-33 23.5-56.5T160-640h120v80H160v360h120v80H160Zm200-80v-406 406Z" />
+                          </svg>
+                        )}
+                      </button>
+                      {/* Rating down */}
+                      <button
+                        onClick={() => {
+                          if (messageId) rateMessage(messageId, "down");
+                        }}
+                        disabled={!messageId}
+                        type="button"
+                        className="sender-msg-btn"
+                      >
+                        {message?.rating === "down" ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="24px"
+                            viewBox="0 -960 960 960"
+                            width="24px"
+                            fill="#1f1f1f"
+                          >
+                            <path d="M120-320q-32 0-56-24t-24-56v-80q0-7 1.5-15t4.5-15l120-282q9-20 30-34t44-14h320q33 0 56.5 23.5T640-760v407q0 16-6.5 30.5T616-297L399-81q-15 14-35.5 17T324-71q-19-10-27.5-28t-3.5-37l45-184H120Zm680-520q33 0 56.5 23.5T880-760v360q0 33-23.5 56.5T800-320q-33 0-56.5-23.5T720-400v-360q0-33 23.5-56.5T800-840Z" />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="24px"
+                            viewBox="0 -960 960 960"
+                            width="24px"
+                            fill="#1f1f1f"
+                          >
+                            <path d="M120-320q-32 0-56-24t-24-56v-80q0-7 2-15t4-15l120-282q9-20 30-34t44-14h440v520L440-82q-15 15-35.5 17.5T365-72q-19-10-28-28t-4-37l45-183H120Zm480-34v-406H240L120-480v80h360l-54 220 174-174Zm200-486q33 0 56.5 23.5T880-760v360q0 33-23.5 56.5T800-320H680v-80h120v-360H680v-80h120Zm-200 80v406-406Z" />
+                          </svg>
+                        )}
+                      </button>
+                      {/* <button
                       onClick={() => {
-                        if (messageId) rateMessage(messageId, "up");
-                      }}
-                      disabled={!messageId}
-                      type="button"
-                      className="sender-msg-btn"
-                    >
-                      {message?.rating === "up" ? (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          height="24px"
-                          viewBox="0 -960 960 960"
-                          width="24px"
-                          fill="#1f1f1f"
-                        >
-                          <path d="M840-640q32 0 56 24t24 56v80q0 7-1.5 15t-4.5 15L794-168q-9 20-30 34t-44 14H400q-33 0-56.5-23.5T320-200v-407q0-16 6.5-30.5T344-663l217-216q15-14 35.5-17t39.5 7q19 10 27.5 28t3.5 37l-45 184h218ZM160-120q-33 0-56.5-23.5T80-200v-360q0-33 23.5-56.5T160-640q33 0 56.5 23.5T240-560v360q0 33-23.5 56.5T160-120Z" />
-                        </svg>
-                      ) : (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          height="24px"
-                          viewBox="0 -960 960 960"
-                          width="24px"
-                          fill="#1f1f1f"
-                        >
-                          <path d="M840-640q32 0 56 24t24 56v80q0 7-2 15t-4 15L794-168q-9 20-30 34t-44 14H280v-520l240-238q15-15 35.5-17.5T595-888q19 10 28 28t4 37l-45 183h258Zm-480 34v406h360l120-280v-80H480l54-220-174 174ZM160-120q-33 0-56.5-23.5T80-200v-360q0-33 23.5-56.5T160-640h120v80H160v360h120v80H160Zm200-80v-406 406Z" />
-                        </svg>
-                      )}
-                    </button>
-                    {/* Rating down */}
-                    <button
-                      onClick={() => {
-                        if (messageId) rateMessage(messageId, "down");
-                      }}
-                      disabled={!messageId}
-                      type="button"
-                      className="sender-msg-btn"
-                    >
-                      {message?.rating === "down" ? (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          height="24px"
-                          viewBox="0 -960 960 960"
-                          width="24px"
-                          fill="#1f1f1f"
-                        >
-                          <path d="M120-320q-32 0-56-24t-24-56v-80q0-7 1.5-15t4.5-15l120-282q9-20 30-34t44-14h320q33 0 56.5 23.5T640-760v407q0 16-6.5 30.5T616-297L399-81q-15 14-35.5 17T324-71q-19-10-27.5-28t-3.5-37l45-184H120Zm680-520q33 0 56.5 23.5T880-760v360q0 33-23.5 56.5T800-320q-33 0-56.5-23.5T720-400v-360q0-33 23.5-56.5T800-840Z" />
-                        </svg>
-                      ) : (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          height="24px"
-                          viewBox="0 -960 960 960"
-                          width="24px"
-                          fill="#1f1f1f"
-                        >
-                          <path d="M120-320q-32 0-56-24t-24-56v-80q0-7 2-15t4-15l120-282q9-20 30-34t44-14h440v520L440-82q-15 15-35.5 17.5T365-72q-19-10-28-28t-4-37l45-183H120Zm480-34v-406H240L120-480v80h360l-54 220 174-174Zm200-486q33 0 56.5 23.5T880-760v360q0 33-23.5 56.5T800-320H680v-80h120v-360H680v-80h120Zm-200 80v406-406Z" />
-                        </svg>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => {
-                        // if (messageId) handleRegenerateMessage(messageId);
+                        if (messageId) handleRegenerateMessage(messageId);
                       }}
                       disabled={!messageId}
                       type="button"
@@ -691,33 +745,35 @@ export default function ChatMain({ className }: Props) {
                       >
                         <path d="M240-478q0 16 2 31.5t7 30.5q5 17-1 32.5T227-361q-16 8-31.5 1.5T175-383q-8-23-11.5-47t-3.5-48q0-134 93-228t227-94h7l-36-36q-11-11-11-28t11-28q11-11 28-11t28 11l104 104q12 12 12 28t-12 28L507-628q-11 11-28 11t-28-11q-11-11-11-28t11-28l36-36h-7q-100 0-170 70.5T240-478Zm480-4q0-16-2-31.5t-7-30.5q-5-17 1-32.5t21-22.5q16-8 31.5-1.5T785-577q8 23 11.5 47t3.5 48q0 134-93 228t-227 94h-7l36 36q11 11 11 28t-11 28q-11 11-28 11t-28-11L349-172q-12-12-12-28t12-28l104-104q11-11 28-11t28 11q11 11 11 28t-11 28l-36 36h7q100 0 170-70.5T720-482Z" />
                       </svg>
-                    </button>
+                    </button> */}
+                    </div>
                   </div>
-                </div>
-              );
-            }
+                );
+              }
 
-            return null;
-          })}
+              return null;
+            })}
 
-          {error && (
-            <div>
-              <p style={{ color: "red" }}>
-                Error sending message. Please try again.
-              </p>
-              <button
-                type="button"
-                onClick={() => inputRef.current?.form?.requestSubmit()}
-              >
-                Retry
-              </button>
-            </div>
-          )}
+            {error && (
+              <div>
+                <p style={{ color: "red" }}>
+                  Error sending message. Please try again.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => inputRef.current?.form?.requestSubmit()}
+                >
+                  Retry
+                </button>
+              </div>
+            )}
 
-          {isPending && <ThinkingIndicator />}
+            {isPending && <ThinkingIndicator />}
+          </div>
         </div>
-      </div>
-      <div className="input-container">
+      )}
+
+      <div className={styles.inputContainer}>
         {messages.length === 0 && (
           <div className="headline-wrapper">
             <p className="headline">What should we explore?</p>
