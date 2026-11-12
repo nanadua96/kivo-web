@@ -1,9 +1,10 @@
-import { Suspense } from 'react';
-import { ChatContainer } from '@/components/ChatContainer';
+import { Suspense } from "react";
+import { ChatContainer } from "@/components/ChatContainer";
+import styles from "./page.module.css";
 
 export default async function HomePage() {
   return (
-    <main className="root">
+    <main className={styles.root}>
       <Suspense fallback={<p>Loading...</p>}>
         <ChatContainer />
       </Suspense>

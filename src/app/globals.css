@@ -113,10 +113,10 @@
   }
 }
 
-.root {
+/* .root {
   height: 100%;
   overflow: hidden;
-}
+} */
 
 /* //////////////////////////////////*  REAL */
 
@@ -279,10 +279,10 @@
   }
 }
 
-main {
+/* main {
   display: flex;
   flex-direction: column;
-}
+} */
 
 /* main {
   display: flex;
