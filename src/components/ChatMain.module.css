@@ -1,4 +1,5 @@
 .container {
+  position: relative;
   display: grid;
   grid-template-rows: auto 1fr auto;
   height: 100%;
@@ -40,6 +41,53 @@
   max-width: 43rem;
 }
 
+.scrollButton {
+  position: absolute;
+  z-index: 3;
+  right: max(20px, calc((100% - 740px) / 2 + 20px));
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid #e4e6eb;
+  border-radius: 50%;
+  background: #fff;
+  color: #333842;
+  box-shadow: 0 3px 12px rgb(0 0 0 / 12%);
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    transform 150ms ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: #f7f8fa;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #7d8798;
+    outline-offset: 3px;
+  }
+
+  & svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+}
+
+.scrollToTop {
+  top: 72px;
+}
+
+.scrollToEnd {
+  bottom: 116px;
+}
+
 .inputContainer {
   display: flex;
   flex-direction: column;
@@ -53,6 +101,16 @@
   max-width: calc(740rem / 16);
   /* max-width: 740px; */
   padding-inline: 16px;
+}
+
+@media (width <= 800px) {
+  .scrollButton {
+    right: 16px;
+  }
+
+  .scrollToEnd {
+    bottom: 124px;
+  }
 }
 
 /* .wrapper {
@@ -202,6 +260,47 @@
   min-height: 32px;
   align-items: center;
   gap: 10px;
+}
+
+.sendError {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #f0caca;
+  border-radius: 10px;
+  background: #fff7f7;
+  color: #a12626;
+  font-size: 13px;
+}
+
+.stoppedNotice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #68707d;
+  font-size: 12px;
+}
+
+.retryButton {
+  flex: 0 0 auto;
+  color: #812020;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:focus-visible {
+    outline: 2px solid #7d8798;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
 }
 
 .attachButton {

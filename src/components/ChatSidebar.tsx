@@ -29,7 +29,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { createAuthClient } from "better-auth/client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useSidebar } from "@/store";
 import { useMessages } from "@/store/message.store";
@@ -37,6 +37,7 @@ import { ChatPopover } from "./ChatPopover";
 import styles from "./ChatSidebar.module.css";
 import { DeleteConversationModal } from "./DeleteConversationModal";
 import { RenameConversationModal } from "./RenameConversationModal";
+import SearchModal from "./SearchModal";
 import { UserPopover } from "./UserPopover";
 
 const BASE_URL = "http://127.0.0.1:4000";
@@ -80,6 +81,8 @@ export default function ChatSidebar({ className }: Props) {
 
   const [conversationToDelete, setConversationToDelete] =
     useState<Conversation | null>(null);
+
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false); //! GET FROM AUTH CLIENT
 
@@ -244,6 +247,12 @@ export default function ChatSidebar({ className }: Props) {
     setChatId(id);
   }
 
+  const closeSearch = useCallback(() => setIsSearchOpen(false), []);
+  const selectSearchResult = useCallback((id: string) => {
+    setChatId(id);
+    setIsSearchOpen(false);
+  }, []);
+
   function handleNewChat() {
     clearMessages();
   }
@@ -261,11 +270,14 @@ export default function ChatSidebar({ className }: Props) {
           <div className={styles.sidebarHeaderGroup}>
             <button
               type="button"
-              // onClick={handleSearch}
+              onClick={() => setIsSearchOpen(true)}
               className={styles.iconButton}
+              aria-label="Search conversations"
+              title="Search conversations"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
                 height="24px"
                 viewBox="0 -960 960 960"
                 width="24px"
@@ -462,6 +474,12 @@ export default function ChatSidebar({ className }: Props) {
           <UserPopover />
         </div>
       </aside>
+      {isSearchOpen && (
+        <SearchModal
+          onClose={closeSearch}
+          onSelect={selectSearchResult}
+        />
+      )}
       {conversationToRename && (
         <RenameConversationModal
           currentTitle={conversationToRename.title}
