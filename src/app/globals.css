@@ -918,3 +918,56 @@ nav {
     display: block;
   }
 }
+
+button[data-tooltip] {
+  position: relative;
+}
+
+button[data-tooltip]::before,
+button[data-tooltip]::after {
+  position: absolute;
+  z-index: 20;
+  left: 50%;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease,
+    visibility 120ms ease;
+}
+
+button[data-tooltip]::before {
+  bottom: calc(100% + 2px);
+  border: 5px solid transparent;
+  border-top-color: #252525;
+  content: "";
+  transform: translateX(-50%);
+}
+
+button[data-tooltip]::after {
+  bottom: calc(100% + 7px);
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: #252525;
+  color: #fff;
+  content: attr(data-tooltip);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  transform: translate(-50%, 3px);
+}
+
+button[data-tooltip]:hover::before,
+button[data-tooltip]:hover::after,
+button[data-tooltip]:focus-visible::before,
+button[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+button[data-tooltip]:hover::after,
+button[data-tooltip]:focus-visible::after {
+  transform: translate(-50%, 0);
+}

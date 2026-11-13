@@ -1,9 +1,11 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useSidebar } from "@/store";
 import { useMessages } from "@/store/message.store";
@@ -219,6 +221,9 @@ async function readEventStream(
 }
 
 export default function ChatMain({ className, conversationId }: Props) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
   // =============================
   // SIDEBAR
   // =============================
@@ -233,6 +238,7 @@ export default function ChatMain({ className, conversationId }: Props) {
     (state) => state.replaceMessagesAfter,
   );
   const updateMessage = useMessages((state) => state.updateMessage);
+  const setMessageRating = useMessages((state) => state.setMessageRating);
   const appendMessageContent = useMessages(
     (state) => state.appendMessageContent,
   );
@@ -341,7 +347,7 @@ export default function ChatMain({ className, conversationId }: Props) {
   async function handleCopy(text: string) {
     try {
       await navigator.clipboard.writeText(text);
-      alert("Copied!");
+      toast.success("Copied");
     } catch (err) {
       console.error("Failed to copy:", err);
     }
@@ -349,10 +355,10 @@ export default function ChatMain({ className, conversationId }: Props) {
 
   const rateMessageMutation = useMutation({
     mutationFn: async ({ id, rating }: { id: string; rating: "up" | "down" }) =>
-      api.post(`/api/messages/${id}/feedback`, { data: { rating } }),
+      api.post(`/api/v1/messages/${id}/feedback?rating=${rating}`),
 
-    onSuccess() {
-      console.log("rate message success");
+    onSuccess(_result, variables) {
+      setMessageRating(variables.id, variables.rating);
     },
   });
 
@@ -511,6 +517,7 @@ export default function ChatMain({ className, conversationId }: Props) {
 
     updateMessage(request.assistantMessageId, "");
     setError("");
+    let createdConversationId: string | null = null;
 
     try {
       const response = await fetch(
@@ -529,11 +536,49 @@ export default function ChatMain({ className, conversationId }: Props) {
 
       if (!response.ok) await throwResponseError(response);
 
-      await readEventStream(response, controller.signal, (event) => {
-        const content = getStreamContent(event);
-        if (content) appendMessageContent(request.assistantMessageId, content);
-      });
-      retryRequestRef.current = null;
+      const receivedDoneEvent = await readEventStream(
+        response,
+        controller.signal,
+        (event) => {
+          if (
+            conversationId === "new" &&
+            !createdConversationId &&
+            typeof event.conversationId === "string" &&
+            event.conversationId !== "new"
+          ) {
+            createdConversationId = event.conversationId;
+            const retryRequest = retryRequestRef.current;
+            if (retryRequest) {
+              retryRequestRef.current = {
+                ...retryRequest,
+                payload: {
+                  ...retryRequest.payload,
+                  conversationId: event.conversationId,
+                },
+              };
+            }
+            void queryClient.invalidateQueries({
+              queryKey: ["conversations"],
+            });
+          }
+
+          const content = getStreamContent(event);
+          if (content) {
+            appendMessageContent(request.assistantMessageId, content);
+          }
+        },
+      );
+      if (!receivedDoneEvent && !controller.signal.aborted) {
+        throw new Error(
+          "The server ended the response before it was complete.",
+        );
+      }
+      if (receivedDoneEvent) {
+        retryRequestRef.current = null;
+        if (createdConversationId && !controller.signal.aborted) {
+          router.replace(`/c/${encodeURIComponent(createdConversationId)}`);
+        }
+      }
     } catch (caught: unknown) {
       if (!controller.signal.aborted) {
         setError(
@@ -907,6 +952,7 @@ export default function ChatMain({ className, conversationId }: Props) {
                         onClick={() => handleCopy(message.content)}
                         type="button"
                         aria-label="Copy message"
+                        data-tooltip="Copy"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -923,6 +969,7 @@ export default function ChatMain({ className, conversationId }: Props) {
                         onClick={() => startEditingPrompt(messageId, content)}
                         type="button"
                         aria-label="Edit message"
+                        data-tooltip="Edit"
                         disabled={isPending}
                       >
                         <svg
@@ -968,6 +1015,7 @@ export default function ChatMain({ className, conversationId }: Props) {
                         type="button"
                         className="sender-msg-btn"
                         aria-label="Copy message"
+                        data-tooltip="Copy"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -989,6 +1037,8 @@ export default function ChatMain({ className, conversationId }: Props) {
                         type="button"
                         className="sender-msg-btn"
                         aria-label="Rate response positively"
+                        data-tooltip="Good response"
+                        aria-pressed={message.rating === "up"}
                       >
                         {message?.rating === "up" ? (
                           <svg
@@ -1023,6 +1073,8 @@ export default function ChatMain({ className, conversationId }: Props) {
                         type="button"
                         className="sender-msg-btn"
                         aria-label="Rate response negatively"
+                        data-tooltip="Bad response"
+                        aria-pressed={message.rating === "down"}
                       >
                         {message?.rating === "down" ? (
                           <svg

@@ -89,8 +89,10 @@
   font-weight: 700;
 }
 
-.conversationItem[data-conversation-pinned]:hover .pinnedMarker {
-  display: none;
+@media (hover: hover) and (pointer: fine) {
+  .conversationItem[data-conversation-pinned]:hover .pinnedMarker {
+    display: none;
+  }
 }
 
 .conversationItemButton {
@@ -121,10 +123,6 @@
 @media (hover: none), (pointer: coarse) {
   .conversationItemButtonGroup {
     display: flex;
-  }
-
-  .pinnedMarker {
-    display: none;
   }
 
   .conversationItem:hover:not(.selected) {

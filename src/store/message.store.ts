@@ -13,6 +13,7 @@ type MessagesState = {
     nextMessage: Message,
   ) => boolean;
   updateMessage: (id: string, content: string) => void;
+  setMessageRating: (id: string, rating: "up" | "down") => void;
   appendMessageContent: (id: string, content: string) => void;
   clearMessages: () => void;
 };
@@ -60,6 +61,13 @@ export const useMessages = create<MessagesState>((set) => ({
         ),
       };
     }),
+
+  setMessageRating: (id, rating) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.id === id ? { ...message, rating } : message,
+      ),
+    })),
 
   appendMessageContent: (id, content) =>
     set((state) => ({

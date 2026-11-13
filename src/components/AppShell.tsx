@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSidebar } from "@/store";
 import styles from "./AppShell.module.css";
 import ChatSidebar from "./ChatSidebar";
@@ -35,7 +35,9 @@ export default function AppShell({ children }: Props) {
     <div
       className={`${styles.container} ${expanded ? "" : styles.collapse} ${initialized ? "" : styles.initializing}`}
     >
-      <ChatSidebar className={styles.sidebar} />
+      <Suspense fallback={<div className={styles.sidebar} aria-hidden="true" />}>
+        <ChatSidebar className={styles.sidebar} />
+      </Suspense>
       {initialized && expanded && (
         <button
           type="button"

@@ -499,6 +499,10 @@
   opacity: 1;
 }
 
+.senderBubbleWrapper:focus-within .senderBubbleButtonGroup {
+  opacity: 1;
+}
+
 .senderBubble {
   background-color: #f0efed;
   color: black;

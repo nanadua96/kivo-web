@@ -11,7 +11,7 @@ export type Message = {
   content: string;
   text: string;
   createdAt: string;
-  rating?: string;
+  rating?: "up" | "down";
   attachments?: MessageAttachment[]; //! Fix
 };
 
