@@ -11,14 +11,16 @@ type Props = {
   }>;
 };
 
-export default async function ({ params }: Props) {
+async function ConversationPageContent({ params }: Props) {
   const { conversationId } = await params;
 
+  return <ChatContainer conversationId={conversationId} />;
+}
+
+export default function ConversationPage({ params }: Props) {
   return (
     <Suspense fallback={<p>Loading...</p>}>
-      <Suspense fallback={<p>Loading...</p>}>
-        <ChatContainer conversationId={conversationId} />
-      </Suspense>
+      <ConversationPageContent params={params} />
     </Suspense>
   );
 }
