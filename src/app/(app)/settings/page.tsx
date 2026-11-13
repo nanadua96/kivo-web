@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import ChatSidebar from "@/components/ChatSidebar";
 import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 import { useSidebar } from "@/store";
@@ -32,7 +31,6 @@ export default function SettingsPage() {
   const expanded = useSidebar((state) => state.expanded);
   const toggleSidebar = useSidebar((state) => state.toggleSidebar);
 
-  const [initialized, setInitialized] = useState(false);
   const [isSavingName, setIsSavingName] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [isDeletingChats, setIsDeletingChats] = useState(false);
@@ -50,22 +48,6 @@ export default function SettingsPage() {
     resolver: zodResolver(nameSchema),
     defaultValues: { name: session?.user.name ?? "" },
   });
-
-  useEffect(() => {
-    const mobileQuery = window.matchMedia("(max-width: 800px)");
-
-    const initializeSidebar = () => {
-      if (mobileQuery.matches && useSidebar.getState().expanded) {
-        useSidebar.getState().toggleSidebar();
-      }
-
-      setInitialized(true);
-    };
-
-    initializeSidebar();
-    mobileQuery.addEventListener("change", initializeSidebar);
-    return () => mobileQuery.removeEventListener("change", initializeSidebar);
-  }, []);
 
   useEffect(() => {
     reset({ name: session?.user.name ?? "" });
@@ -153,169 +135,157 @@ export default function SettingsPage() {
   }
 
   return (
-    <div
-      className={`${styles.container} ${expanded ? "" : styles.collapse} ${initialized ? "" : styles.initializing}`}
-    >
-      <ChatSidebar className={styles.sidebar} />
-      {initialized && expanded && (
-        <button
-          type="button"
-          className={styles.backdrop}
-          aria-label="Close sidebar"
-          onClick={toggleSidebar}
-        />
-      )}
-
-      <main className={styles.workspace}>
-        <header className={styles.header}>
+    <main className={styles.workspace}>
+      <header className={styles.header}>
+        {!expanded && (
           <button
             type="button"
             className={styles.sidebarToggle}
-            aria-label={expanded ? "Collapse sidebar" : "Open sidebar"}
+            aria-label="Open sidebar"
             onClick={toggleSidebar}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <div>
-            <p className={styles.eyebrow}>Preferences</p>
-            <h1>Settings</h1>
-          </div>
-        </header>
+        )}
+        <div>
+          <p className={styles.eyebrow}>Preferences</p>
+          <h1>Settings</h1>
+        </div>
+      </header>
 
-        <div className={styles.content}>
-          <form
-            className={styles.form}
-            onSubmit={handleSubmit(saveName)}
-            noValidate
-          >
-            <section className={styles.card} aria-labelledby="profile-heading">
-              <div className={styles.sectionHeading}>
-                <h2 id="profile-heading">Profile</h2>
-                <p>Manage your account details.</p>
+      <div className={styles.content}>
+        <form
+          className={styles.form}
+          onSubmit={handleSubmit(saveName)}
+          noValidate
+        >
+          <section className={styles.card} aria-labelledby="profile-heading">
+            <div className={styles.sectionHeading}>
+              <h2 id="profile-heading">Profile</h2>
+              <p>Manage your account details.</p>
+            </div>
+
+            <div className={styles.profile}>
+              <span className={styles.avatar} aria-hidden="true">
+                {avatar.toUpperCase()}
+              </span>
+              <div className={styles.profileInfo}>
+                <strong>
+                  {email ||
+                    (isSessionPending
+                      ? "Loading account..."
+                      : "No email available")}
+                </strong>
+                <span>Email address</span>
               </div>
+            </div>
 
-              <div className={styles.profile}>
-                <span className={styles.avatar} aria-hidden="true">
-                  {avatar.toUpperCase()}
-                </span>
-                <div className={styles.profileInfo}>
-                  <strong>
-                    {email ||
-                      (isSessionPending
-                        ? "Loading account..."
-                        : "No email available")}
-                  </strong>
-                  <span>Email address</span>
-                </div>
-              </div>
-
-              <div className={styles.field}>
-                <label htmlFor="settings-name">Name</label>
-                <input
-                  id="settings-name"
-                  autoComplete="name"
-                  maxLength={80}
-                  disabled={!session || isSavingName}
-                  aria-invalid={Boolean(errors.name)}
-                  aria-describedby={
-                    errors.name ? "settings-name-error" : "settings-name-help"
-                  }
-                  {...register("name")}
-                />
-                {errors.name ? (
-                  <span
-                    className={styles.error}
-                    id="settings-name-error"
-                    role="alert"
-                  >
-                    {errors.name.message}
-                  </span>
-                ) : (
-                  <span className={styles.helper} id="settings-name-help">
-                    This name appears on your account. Use up to 80 characters.
-                  </span>
-                )}
-              </div>
-
-              <div className={styles.formActions}>
-                <button
-                  type="submit"
-                  className={styles.primaryButton}
-                  disabled={
-                    !session || !isDirty || isSavingName || isSessionPending
-                  }
+            <div className={styles.field}>
+              <label htmlFor="settings-name">Name</label>
+              <input
+                id="settings-name"
+                autoComplete="name"
+                maxLength={80}
+                disabled={!session || isSavingName}
+                aria-invalid={Boolean(errors.name)}
+                aria-describedby={
+                  errors.name ? "settings-name-error" : "settings-name-help"
+                }
+                {...register("name")}
+              />
+              {errors.name ? (
+                <span
+                  className={styles.error}
+                  id="settings-name-error"
+                  role="alert"
                 >
-                  {isSavingName ? "Saving..." : "Save changes"}
+                  {errors.name.message}
+                </span>
+              ) : (
+                <span className={styles.helper} id="settings-name-help">
+                  This name appears on your account. Use up to 80 characters.
+                </span>
+              )}
+            </div>
+
+            <div className={styles.formActions}>
+              <button
+                type="submit"
+                className={styles.primaryButton}
+                disabled={
+                  !session || !isDirty || isSavingName || isSessionPending
+                }
+              >
+                {isSavingName ? "Saving..." : "Save changes"}
+              </button>
+            </div>
+          </section>
+
+          <section className={styles.card} aria-labelledby="data-heading">
+            <div className={styles.sectionHeading}>
+              <h2 id="data-heading">Your data</h2>
+              <p>Manage your account and saved conversations.</p>
+            </div>
+
+            <div className={styles.dangerZone}>
+              <div className={styles.dangerAction}>
+                <div>
+                  <strong>Delete all chats</strong>
+                  <span>
+                    Permanently remove every conversation from your account.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className={styles.dangerButton}
+                  disabled={!session || isBusy}
+                  onClick={() => {
+                    setActionError("");
+                    setConfirmAction("chats");
+                  }}
+                >
+                  Delete all chats
                 </button>
               </div>
-            </section>
 
-            <section className={styles.card} aria-labelledby="data-heading">
-              <div className={styles.sectionHeading}>
-                <h2 id="data-heading">Your data</h2>
-                <p>Manage your account and saved conversations.</p>
-              </div>
-
-              <div className={styles.dangerZone}>
-                <div className={styles.dangerAction}>
-                  <div>
-                    <strong>Delete all chats</strong>
-                    <span>
-                      Permanently remove every conversation from your account.
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.dangerButton}
-                    disabled={!session || isBusy}
-                    onClick={() => {
-                      setActionError("");
-                      setConfirmAction("chats");
-                    }}
-                  >
-                    Delete all chats
-                  </button>
+              <div className={styles.dangerAction}>
+                <div>
+                  <strong>Delete account</strong>
+                  <span>Permanently delete your account and sign out.</span>
                 </div>
-
-                <div className={styles.dangerAction}>
-                  <div>
-                    <strong>Delete account</strong>
-                    <span>Permanently delete your account and sign out.</span>
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.dangerButton}
-                    disabled={!session || isBusy}
-                    onClick={() => {
-                      setActionError("");
-                      setConfirmAction("account");
-                    }}
-                  >
-                    Delete account
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className={styles.dangerButton}
+                  disabled={!session || isBusy}
+                  onClick={() => {
+                    setActionError("");
+                    setConfirmAction("account");
+                  }}
+                >
+                  Delete account
+                </button>
               </div>
+            </div>
 
-              {actionMessage && (
-                <output className={styles.success}>{actionMessage}</output>
-              )}
-              {actionError && (
-                <p className={styles.error} role="alert">
-                  {actionError}
-                </p>
-              )}
-            </section>
-          </form>
+            {actionMessage && (
+              <output className={styles.success}>{actionMessage}</output>
+            )}
+            {actionError && (
+              <p className={styles.error} role="alert">
+                {actionError}
+              </p>
+            )}
+          </section>
+        </form>
 
-          <footer className={styles.footer}>
-            <span>About Kivo</span>
-            <Link href="/terms">Terms of Service</Link>
-            <Link href="/privacy">Privacy Policy</Link>
-          </footer>
-        </div>
-      </main>
+        <footer className={styles.footer}>
+          <span>About Kivo</span>
+          <Link href="/terms">Terms of Service</Link>
+          <Link href="/privacy">Privacy Policy</Link>
+        </footer>
+      </div>
 
       {confirmAction && (
         <div className={styles.confirmBackdrop}>
@@ -365,6 +335,6 @@ export default function SettingsPage() {
           </section>
         </div>
       )}
-    </div>
+    </main>
   );
 }

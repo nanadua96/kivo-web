@@ -542,6 +542,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  align-self: stretch;
   gap: 8px;
 
   & .userBubble {
@@ -549,9 +550,9 @@
     color: black;
     padding: var(--8px) var(--14px);
     border-radius: 20px;
-    /* align-self: flex-end; */
     font-size: var(--16px);
-    max-width: 75%;
+    width: 75%;
+    box-sizing: border-box;
   }
 
   & .userBubbleButtonGroup {
@@ -559,10 +560,16 @@
     gap: 8px;
   }
 
-  & input {
+  & textarea {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
     background-color: transparent;
     border: 0;
     outline: 0;
+    color: inherit;
+    font: inherit;
+    resize: vertical;
   }
 }
 
@@ -571,10 +578,10 @@
   display: flex;
   align-items: center;
   gap: var(--8px);
-  /* padding: var(--8px); */
+  padding: 0 12px;
   justify-content: center;
   height: 32px;
-  width: 32px;
+  width: auto;
   border-radius: var(--8px);
 
   & svg {

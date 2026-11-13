@@ -101,15 +101,6 @@ export function UserPopover() {
             <SettingsIcon />
             <span>Settings</span>
           </Link>
-          <Link
-            href="/faq#feedback"
-            className={styles.menuItem}
-            role="menuitem"
-            onClick={() => setIsOpen(false)}
-          >
-            <HelpIcon />
-            <span>Help &amp; Feedback</span>
-          </Link>
           <div className={styles.divider} />
           <button
             type="button"

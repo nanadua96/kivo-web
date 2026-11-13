@@ -40,6 +40,11 @@ type RetryRequest = {
   assistantMessageId: string;
 };
 
+type EditRequest = {
+  messageId: string;
+  message: string;
+};
+
 type ConversationLoadState = {
   conversationId: string;
   status: "loading" | "loaded" | "error";
@@ -96,6 +101,123 @@ function readAsDataUrl(file: File) {
   });
 }
 
+async function throwResponseError(response: Response): Promise<never> {
+  const responseBody = await response.text();
+  let detail = responseBody;
+
+  try {
+    const parsedBody: unknown = JSON.parse(responseBody);
+    if (parsedBody && typeof parsedBody === "object") {
+      const body = parsedBody as Record<string, unknown>;
+      const nestedError =
+        body.error && typeof body.error === "object"
+          ? (body.error as Record<string, unknown>).message
+          : body.error;
+      const message = body.message ?? nestedError;
+      if (typeof message === "string") detail = message;
+    }
+  } catch {
+    // Use the response text when the server does not return JSON.
+  }
+
+  throw new Error(
+    detail || `The request failed (${response.status}). Please try again.`,
+  );
+}
+
+function getStreamContent(event: Record<string, unknown>) {
+  const choices = Array.isArray(event.choices) ? event.choices[0] : undefined;
+  const delta =
+    choices && typeof choices === "object"
+      ? (choices as Record<string, unknown>).delta
+      : undefined;
+  const deltaContent =
+    delta && typeof delta === "object"
+      ? (delta as Record<string, unknown>).content
+      : undefined;
+
+  return typeof event.content === "string"
+    ? event.content
+    : typeof deltaContent === "string"
+      ? deltaContent
+      : "";
+}
+
+async function readEventStream(
+  response: Response,
+  signal: AbortSignal,
+  onEvent: (event: Record<string, unknown>) => void,
+) {
+  if (!response.body) {
+    throw new Error("The response stream is unavailable. Please try again.");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let receivedDoneEvent = false;
+
+  const processEvent = (block: string) => {
+    const data = block
+      .split(/\r?\n/)
+      .filter((line) => line.startsWith("data:"))
+      .map((line) => line.slice(5).trimStart())
+      .join("\n")
+      .trim();
+
+    if (!data) return;
+    if (data === "[DONE]") {
+      receivedDoneEvent = true;
+      return;
+    }
+
+    let event: unknown;
+    try {
+      event = JSON.parse(data);
+    } catch {
+      throw new Error("The server sent an invalid streaming response.");
+    }
+    if (!event || typeof event !== "object") return;
+
+    const payload = event as Record<string, unknown>;
+    if (payload.error) {
+      const errorValue = payload.error;
+      const serverError =
+        typeof errorValue === "string"
+          ? errorValue
+          : errorValue &&
+              typeof errorValue === "object" &&
+              typeof (errorValue as Record<string, unknown>).message ===
+                "string"
+            ? ((errorValue as Record<string, unknown>).message as string)
+            : "The server could not complete your request.";
+      throw new Error(serverError);
+    }
+
+    onEvent(payload);
+  };
+
+  while (!receivedDoneEvent && !signal.aborted) {
+    const { value, done } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const events = buffer.split(/\r?\n\r?\n/);
+    buffer = events.pop() ?? "";
+    for (const streamEvent of events) {
+      processEvent(streamEvent);
+      if (receivedDoneEvent) break;
+    }
+  }
+
+  if (signal.aborted) return false;
+  buffer += decoder.decode();
+  if (!receivedDoneEvent && buffer.trim()) processEvent(buffer);
+  if (receivedDoneEvent) await reader.cancel();
+
+  return receivedDoneEvent;
+}
+
 export default function ChatMain({ className, conversationId }: Props) {
   // =============================
   // SIDEBAR
@@ -107,6 +229,9 @@ export default function ChatMain({ className, conversationId }: Props) {
   const messages = useMessages((state) => state.messages);
   const clearMessages = useMessages((state) => state.clearMessages);
   const addMessages = useMessages((state) => state.addMessages);
+  const replaceMessagesAfter = useMessages(
+    (state) => state.replaceMessagesAfter,
+  );
   const updateMessage = useMessages((state) => state.updateMessage);
   const appendMessageContent = useMessages(
     (state) => state.appendMessageContent,
@@ -117,9 +242,13 @@ export default function ChatMain({ className, conversationId }: Props) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const messageLoadControllerRef = useRef<AbortController | null>(null);
   const retryRequestRef = useRef<RetryRequest | null>(null);
+  const editRequestRef = useRef<EditRequest | null>(null);
+  const activeAssistantMessageIdRef = useRef<string | null>(null);
   const previousConversationIdRef = useRef(conversationId);
 
   const [input, setInput] = useState("");
+  const [editText, setEditText] = useState("");
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [conversationLoadState, setConversationLoadState] =
     useState<ConversationLoadState>({
       conversationId: "",
@@ -237,6 +366,10 @@ export default function ChatMain({ className, conversationId }: Props) {
     abortControllerRef.current?.abort();
     abortControllerRef.current = null;
     retryRequestRef.current = null;
+    editRequestRef.current = null;
+    activeAssistantMessageIdRef.current = null;
+    setEditingMessageId(null);
+    setEditText("");
     setIsPending(false);
     setError("");
   }, [conversationId]);
@@ -252,7 +385,11 @@ export default function ChatMain({ className, conversationId }: Props) {
     const controller = new AbortController();
     abortControllerRef.current = controller;
     retryRequestRef.current = null;
+    editRequestRef.current = null;
+    activeAssistantMessageIdRef.current = null;
     setStoppedMessageId(null);
+    setEditingMessageId(null);
+    setEditText("");
     setIsPending(true);
     setError("");
     setAttachmentError("");
@@ -390,117 +527,12 @@ export default function ChatMain({ className, conversationId }: Props) {
         },
       );
 
-      if (!response.ok) {
-        const responseBody = await response.text();
-        let detail = responseBody;
-        try {
-          const parsedBody: unknown = JSON.parse(responseBody);
-          if (parsedBody && typeof parsedBody === "object") {
-            const body = parsedBody as Record<string, unknown>;
-            const nestedError =
-              body.error && typeof body.error === "object"
-                ? (body.error as Record<string, unknown>).message
-                : body.error;
-            const message = body.message ?? nestedError;
-            if (typeof message === "string") detail = message;
-          }
-        } catch {
-          // Use the response text when the server does not return JSON.
-        }
-        throw new Error(
-          detail ||
-            `The request failed (${response.status}). Please try again.`,
-        );
-      }
+      if (!response.ok) await throwResponseError(response);
 
-      if (!response.body) {
-        throw new Error(
-          "The response stream is unavailable. Please try again.",
-        );
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let receivedDoneEvent = false;
-
-      const processEvent = (block: string) => {
-        const data = block
-          .split(/\r?\n/)
-          .filter((line) => line.startsWith("data:"))
-          .map((line) => line.slice(5).trimStart())
-          .join("\n")
-          .trim();
-
-        if (!data) return;
-        if (data === "[DONE]") {
-          receivedDoneEvent = true;
-          return;
-        }
-
-        let event: unknown;
-        try {
-          event = JSON.parse(data);
-        } catch {
-          throw new Error("The server sent an invalid streaming response.");
-        }
-        if (!event || typeof event !== "object") return;
-
-        const payload = event as Record<string, unknown>;
-        if (payload.error) {
-          const errorValue = payload.error;
-          const serverError =
-            typeof errorValue === "string"
-              ? errorValue
-              : errorValue &&
-                  typeof errorValue === "object" &&
-                  typeof (errorValue as Record<string, unknown>).message ===
-                    "string"
-                ? ((errorValue as Record<string, unknown>).message as string)
-                : "The server could not complete your request.";
-          throw new Error(serverError);
-        }
-
-        const choices = Array.isArray(payload.choices)
-          ? payload.choices[0]
-          : undefined;
-        const delta =
-          choices && typeof choices === "object"
-            ? (choices as Record<string, unknown>).delta
-            : undefined;
-        const deltaContent =
-          delta && typeof delta === "object"
-            ? (delta as Record<string, unknown>).content
-            : undefined;
-        const content =
-          typeof payload.content === "string"
-            ? payload.content
-            : typeof deltaContent === "string"
-              ? deltaContent
-              : "";
-
+      await readEventStream(response, controller.signal, (event) => {
+        const content = getStreamContent(event);
         if (content) appendMessageContent(request.assistantMessageId, content);
-      };
-
-      while (!receivedDoneEvent && !controller.signal.aborted) {
-        const { value, done } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const events = buffer.split(/\r?\n\r?\n/);
-        buffer = events.pop() ?? "";
-        for (const streamEvent of events) {
-          processEvent(streamEvent);
-          if (receivedDoneEvent) break;
-        }
-      }
-
-      if (controller.signal.aborted) return;
-      buffer += decoder.decode();
-      if (!receivedDoneEvent && buffer.trim()) {
-        processEvent(buffer);
-      }
-      if (receivedDoneEvent) await reader.cancel();
+      });
       retryRequestRef.current = null;
     } catch (caught: unknown) {
       if (!controller.signal.aborted) {
@@ -511,32 +543,6 @@ export default function ChatMain({ className, conversationId }: Props) {
         );
       }
     }
-  }
-
-  async function retryLastRequest() {
-    const request = retryRequestRef.current;
-    if (!request || isPending) return;
-
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-    setIsPending(true);
-    setError("");
-    setStoppedMessageId(null);
-    try {
-      await streamRequest(request, controller);
-    } finally {
-      if (abortControllerRef.current === controller) {
-        abortControllerRef.current = null;
-      }
-      setIsPending(false);
-    }
-  }
-
-  function stopStreaming() {
-    if (retryRequestRef.current) {
-      setStoppedMessageId(retryRequestRef.current.assistantMessageId);
-    }
-    abortControllerRef.current?.abort();
   }
 
   function handleAttachmentSelection(
@@ -603,25 +609,164 @@ export default function ChatMain({ className, conversationId }: Props) {
     });
   }
 
-  const [editText, setEditText] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
-
-  function toggleEdit(content: string) {
+  function startEditingPrompt(messageId: string, content: string) {
+    if (isPending) return;
+    retryRequestRef.current = null;
+    editRequestRef.current = null;
+    setError("");
+    setEditingMessageId(messageId);
     setEditText(content);
-    setIsEditing(!isEditing);
   }
 
-  function handleEditSubmit() {
-    console.log("🌈 Edited prompt:", editText);
-    toggleEdit("");
-
-    // sumbit code goes here
+  function cancelEditingPrompt() {
+    setEditingMessageId(null);
+    setEditText("");
+    editRequestRef.current = null;
+    setError("");
   }
 
-  //   function handleCancelEdit(text: string) {
-  //     setEditText("");
-  // toggleEdit("")
-  //   }
+  async function streamEditedPrompt(
+    request: EditRequest,
+    controller: AbortController,
+  ) {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/messages/${encodeURIComponent(request.messageId)}/edit`,
+      {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          Accept: "text/event-stream",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: request.message }),
+        signal: controller.signal,
+      },
+    );
+
+    if (!response.ok) await throwResponseError(response);
+
+    let assistantMessageId: string | null = null;
+    await readEventStream(response, controller.signal, (event) => {
+      if (!assistantMessageId && typeof event.id === "string" && event.id) {
+        const replaced = replaceMessagesAfter(
+          request.messageId,
+          request.message,
+          {
+            id: event.id,
+            role: "assistant",
+            content: "",
+            text: "",
+            createdAt: new Date().toISOString(),
+          },
+        );
+        if (!replaced) {
+          throw new Error(
+            "This prompt is no longer available to edit. Reload the conversation and try again.",
+          );
+        }
+        assistantMessageId = event.id;
+        activeAssistantMessageIdRef.current = event.id;
+        setEditingMessageId(null);
+        setEditText("");
+      }
+
+      const content = getStreamContent(event);
+      if (content) {
+        if (!assistantMessageId) {
+          throw new Error("The server did not identify the edited response.");
+        }
+        appendMessageContent(assistantMessageId, content);
+      }
+    });
+
+    if (!controller.signal.aborted && !assistantMessageId) {
+      throw new Error("The server did not identify the edited response.");
+    }
+
+    if (!controller.signal.aborted) editRequestRef.current = null;
+  }
+
+  async function runEditRequest(request: EditRequest) {
+    if (isPending) return;
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    activeAssistantMessageIdRef.current = null;
+    editRequestRef.current = request;
+    setIsPending(true);
+    setError("");
+    setStoppedMessageId(null);
+
+    try {
+      await streamEditedPrompt(request, controller);
+    } catch (caught: unknown) {
+      if (!controller.signal.aborted) {
+        setError(
+          caught instanceof Error
+            ? caught.message
+            : "Unable to update your prompt. Please try again.",
+        );
+      }
+    } finally {
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
+      if (activeAssistantMessageIdRef.current) {
+        activeAssistantMessageIdRef.current = null;
+      }
+      setIsPending(false);
+    }
+  }
+
+  function handleEditSubmit(
+    event: React.FormEvent<HTMLFormElement>,
+    messageId: string,
+  ) {
+    event.preventDefault();
+    const message = editText.trim();
+    if (!message) {
+      setError("Enter a prompt before submitting.");
+      return;
+    }
+    if (isPending) return;
+
+    void runEditRequest({ messageId, message });
+  }
+
+  async function retryLastRequest() {
+    if (isPending) return;
+
+    const editRequest = editRequestRef.current;
+    if (editRequest) {
+      await runEditRequest(editRequest);
+      return;
+    }
+
+    const request = retryRequestRef.current;
+    if (!request) return;
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    setIsPending(true);
+    setError("");
+    setStoppedMessageId(null);
+    try {
+      await streamRequest(request, controller);
+    } finally {
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
+      setIsPending(false);
+    }
+  }
+
+  function stopStreaming() {
+    const assistantMessageId =
+      activeAssistantMessageIdRef.current ??
+      retryRequestRef.current?.assistantMessageId;
+    if (assistantMessageId) setStoppedMessageId(assistantMessageId);
+    abortControllerRef.current?.abort();
+  }
 
   return (
     <section
@@ -695,46 +840,38 @@ export default function ChatMain({ className, conversationId }: Props) {
 
               // User bubble
               if (role === "user") {
-                // Show edit
-                if (isEditing) {
+                if (editingMessageId === messageId) {
                   return (
-                    <div key={id} className={styles.userBubbleEdit}>
+                    <form
+                      key={id}
+                      className={styles.userBubbleEdit}
+                      onSubmit={(event) => handleEditSubmit(event, messageId)}
+                    >
                       <div className={styles.userBubble}>
-                        <input
+                        <textarea
                           value={editText}
-                          onChange={(e) => {
-                            setEditText(e.target.value);
-                            console.log("User is typing:", e.target.value);
-                          }}
+                          onChange={(event) => setEditText(event.target.value)}
+                          aria-label="Edit prompt"
+                          disabled={isPending}
+                          rows={3}
                         />
                       </div>
                       <div className={styles.userBubbleButtonGroup}>
-                        <button onClick={() => toggleEdit("")} type="button">
+                        <button
+                          onClick={cancelEditingPrompt}
+                          type="button"
+                          disabled={isPending}
+                        >
                           Cancel
-                          {/* <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            height="24px"
-                            viewBox="0 -960 960 960"
-                            width="24px"
-                            fill="#1f1f1f"
-                          >
-                            <path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-520q0-17 11.5-28.5T160-720q17 0 28.5 11.5T200-680v520h400q17 0 28.5 11.5T640-120q0 17-11.5 28.5T600-80H200Zm160-240v-480 480Z" />
-                          </svg> */}
                         </button>
-                        <button onClick={handleEditSubmit} type="button">
-                          Done
-                          {/* <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            height="24px"
-                            viewBox="0 -960 960 960"
-                            width="24px"
-                            fill="#1f1f1f"
-                          >
-                            <path d="M200-200h57l391-391-57-57-391 391v57Zm-40 80q-17 0-28.5-11.5T120-160v-97q0-16 6-30.5t17-25.5l505-504q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L313-143q-11 11-25.5 17t-30.5 6h-97Zm600-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
-                          </svg> */}
+                        <button
+                          type="submit"
+                          disabled={isPending || !editText.trim()}
+                        >
+                          {isPending ? "Updating..." : "Update"}
                         </button>
                       </div>
-                    </div>
+                    </form>
                   );
                 }
 
@@ -783,9 +920,10 @@ export default function ChatMain({ className, conversationId }: Props) {
                         </svg>
                       </button>
                       <button
-                        onClick={() => toggleEdit(content)}
+                        onClick={() => startEditingPrompt(messageId, content)}
                         type="button"
                         aria-label="Edit message"
+                        disabled={isPending}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -951,7 +1089,7 @@ export default function ChatMain({ className, conversationId }: Props) {
         {error && (
           <div className={styles.sendError} role="alert">
             <span>{error}</span>
-            {retryRequestRef.current && (
+            {(retryRequestRef.current || editRequestRef.current) && (
               <button
                 type="button"
                 className={styles.retryButton}

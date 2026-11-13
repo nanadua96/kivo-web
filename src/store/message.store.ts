@@ -7,6 +7,11 @@ type MessagesState = {
   initMessages: (message: Messages) => void;
   addMessage: (message: Message) => void;
   addMessages: (messages: Messages) => void;
+  replaceMessagesAfter: (
+    id: string,
+    content: string,
+    nextMessage: Message,
+  ) => boolean;
   updateMessage: (id: string, content: string) => void;
   appendMessageContent: (id: string, content: string) => void;
   clearMessages: () => void;
@@ -22,6 +27,30 @@ export const useMessages = create<MessagesState>((set) => ({
 
   addMessages: (messages) =>
     set((state) => ({ messages: [...state.messages, ...messages] })),
+
+  replaceMessagesAfter: (id, content, nextMessage) => {
+    let replaced = false;
+    set((state) => {
+      const index = state.messages.findIndex((message) => message.id === id);
+      if (index === -1) return state;
+
+      replaced = true;
+      const editedMessage = {
+        ...state.messages[index],
+        content,
+        text: content,
+      };
+
+      return {
+        messages: [
+          ...state.messages.slice(0, index),
+          editedMessage,
+          nextMessage,
+        ],
+      };
+    });
+    return replaced;
+  },
 
   updateMessage: (id, content) =>
     set((state) => {

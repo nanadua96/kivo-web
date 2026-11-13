@@ -222,7 +222,7 @@ export default function ChatSidebar({ className }: Props) {
 
   function handleNewChat() {
     clearMessages();
-    router.push("/");
+    router.push("/c/new");
   }
 
   return (
