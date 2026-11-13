@@ -28,9 +28,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { createAuthClient } from "better-auth/client";
 import { usePathname, useRouter } from "next/navigation";
-import { Router } from "next/router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useSidebar } from "@/store";
@@ -42,9 +40,6 @@ import { RenameConversationModal } from "./RenameConversationModal";
 import SearchModal from "./SearchModal";
 import { UserPopover } from "./UserPopover";
 
-const BASE_URL = "http://127.0.0.1:4000";
-
-const authClient = createAuthClient();
 const CONVERSATION_PAGE_SIZE = 20;
 
 type Conversation = {
@@ -66,19 +61,11 @@ type ConversationPageResponse = {
   nextPage: number | null;
 };
 
-type ConversationPage = {
-  docs: Conversation[];
-  nextPage: number | null;
-};
-
 type Props = {
   className?: string;
-  conversationId: string
 };
 
-export default function ChatSidebar({ className , conversationId}: Props) {
-  const [chatId, setChatId] = useState("new");
-
+export default function ChatSidebar({ className }: Props) {
   const [conversationToRename, setConversationToRename] =
     useState<Conversation | null>(null);
 
@@ -214,31 +201,28 @@ export default function ChatSidebar({ className , conversationId}: Props) {
   });
 
   const router = useRouter();
+  const pathname = usePathname();
+  const selectedConversationId = pathname.startsWith("/c/")
+    ? pathname.slice(3)
+    : null;
 
-
-    const pathname = usePathname();
-    
-console.log("🌄",pathname.replace('/c/', ""));
-
-
-const currentPathId =pathname.replace('/c/', "")
-console.log("⚡",{conversationId,  currentPathId});
-
-
-  async function handleChat(id: string) {
-    setChatId(id);
-    router.replace(`/c/${id}`);
+  function handleChat(id: string) {
+    router.push(`/c/${id}`);
   }
 
   const closeSearch = useCallback(() => setIsSearchOpen(false), []);
 
-  const selectSearchResult = useCallback((id: string) => {
-    setChatId(id);
-    setIsSearchOpen(false);
-  }, []);
+  const selectSearchResult = useCallback(
+    (id: string) => {
+      setIsSearchOpen(false);
+      router.push(`/c/${id}`);
+    },
+    [router],
+  );
 
   function handleNewChat() {
     clearMessages();
+    router.push("/");
   }
 
   return (
@@ -343,14 +327,19 @@ console.log("⚡",{conversationId,  currentPathId});
                 key={c.id}
                 data-conversation-item
                 data-conversation-pinned={c.pinned ? "true" : undefined}
-                className={`${styles.conversationItem} ${conversationId === currentPathId ? styles.selected : ""}`}
-                // className={`${styles.conversationItem} ${chatId === c.id ? styles.selected : ""}`}
+                className={`${styles.conversationItem} ${selectedConversationId === c.id ? styles.selected : ""}`}
                 onClick={() => handleChat(c.id)}
               >
                 <button
                   type="button"
                   className={`${styles.conversationTitle} sidebar-chat-title`}
-                  onClick={() => handleChat(c.id)}
+                  aria-current={
+                    selectedConversationId === c.id ? "page" : undefined
+                  }
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleChat(c.id);
+                  }}
                   title={c.title}
                 >
                   {c.title}
@@ -362,7 +351,6 @@ console.log("⚡",{conversationId,  currentPathId});
                   {c.pinned && (
                     <span className={styles.pinnedMarker} aria-label="Pinned">
                       <div
-                        type="button"
                         className={styles.conversationItemButton}
                         title={
                           c.pinned ? "Unpin conversation" : "Pin conversation"

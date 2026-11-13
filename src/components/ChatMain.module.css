@@ -10,6 +10,10 @@
     grid-template-rows: min-content auto;
     /* background-color: lightpink; */
   }
+
+  &.hasConversationStatus {
+    grid-template-rows: min-content minmax(0, 1fr) auto;
+  }
 }
 
 /* .container.empty {
@@ -39,6 +43,43 @@
   display: flex;
   flex-direction: column;
   max-width: 43rem;
+}
+
+.messageLoading,
+.messageLoadError {
+  grid-row: 2;
+  align-self: center;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #68707d;
+  font-size: 14px;
+}
+
+.messageLoader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #dfe2e8;
+  border-top-color: #68707d;
+  border-radius: 50%;
+  animation: messageLoaderSpin 700ms linear infinite;
+}
+
+.messageLoadError {
+  flex-direction: column;
+  color: #a12626;
+
+  & button {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+@keyframes messageLoaderSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .scrollButton {

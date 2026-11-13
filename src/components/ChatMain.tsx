@@ -3,7 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useSidebar } from "@/store";
 import { useMessages } from "@/store/message.store";
@@ -38,6 +38,11 @@ type StreamRequest = {
 type RetryRequest = {
   payload: StreamRequest;
   assistantMessageId: string;
+};
+
+type ConversationLoadState = {
+  conversationId: string;
+  status: "loading" | "loaded" | "error";
 };
 
 const MAX_ATTACHMENTS = 5;
@@ -100,6 +105,7 @@ export default function ChatMain({ className, conversationId }: Props) {
 
   const initMessages = useMessages((state) => state.initMessages);
   const messages = useMessages((state) => state.messages);
+  const clearMessages = useMessages((state) => state.clearMessages);
   const addMessages = useMessages((state) => state.addMessages);
   const updateMessage = useMessages((state) => state.updateMessage);
   const appendMessageContent = useMessages(
@@ -109,9 +115,16 @@ export default function ChatMain({ className, conversationId }: Props) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const messageLoadControllerRef = useRef<AbortController | null>(null);
   const retryRequestRef = useRef<RetryRequest | null>(null);
+  const previousConversationIdRef = useRef(conversationId);
 
   const [input, setInput] = useState("");
+  const [conversationLoadState, setConversationLoadState] =
+    useState<ConversationLoadState>({
+      conversationId: "",
+      status: "loading",
+    });
 
   const [selectedAttachments, setSelectedAttachments] = useState<
     SelectedAttachment[]
@@ -120,26 +133,64 @@ export default function ChatMain({ className, conversationId }: Props) {
 
   const isInputEmpty =
     input.trim().length === 0 && selectedAttachments.length === 0;
+  const activeMessages =
+    conversationLoadState.conversationId === conversationId &&
+    conversationLoadState.status === "loaded"
+      ? messages
+      : [];
+  const isLoadingConversation =
+    conversationId !== "new" &&
+    (conversationLoadState.conversationId !== conversationId ||
+      conversationLoadState.status === "loading");
+  const hasConversationLoadError =
+    conversationLoadState.conversationId === conversationId &&
+    conversationLoadState.status === "error";
 
   const selectedAttachmentsRef = useRef<SelectedAttachment[]>([]);
 
-  useEffect(() => {
-    async function test() {
-      try {
-        const { data } = await api.get<Messages>(
-          `/api/v1/conversations/${conversationId}/messages`,
-        );
+  const loadConversation = useCallback(async () => {
+    messageLoadControllerRef.current?.abort();
+    const controller = new AbortController();
+    messageLoadControllerRef.current = controller;
+    clearMessages();
 
-        console.log("🔥", data);
-
-        initMessages(data);
-      } catch (error) {
-        console.log("Error", error);
-      }
+    if (conversationId === "new") {
+      setConversationLoadState({ conversationId, status: "loaded" });
+      return;
     }
 
-    test();
-  }, []);
+    setConversationLoadState({ conversationId, status: "loading" });
+
+    try {
+      const { data } = await api.get<Messages>(
+        `/api/v1/conversations/${conversationId}/messages`,
+        {
+          signal: controller.signal,
+        },
+      );
+      if (!controller.signal.aborted) {
+        initMessages(data);
+        setConversationLoadState({ conversationId, status: "loaded" });
+      }
+    } catch (error: unknown) {
+      if (!controller.signal.aborted) {
+        console.error("Could not load conversation messages.", error);
+        setConversationLoadState({ conversationId, status: "error" });
+      }
+    } finally {
+      if (messageLoadControllerRef.current === controller) {
+        messageLoadControllerRef.current = null;
+      }
+    }
+  }, [clearMessages, conversationId, initMessages]);
+
+  useEffect(() => {
+    void loadConversation();
+    return () => {
+      messageLoadControllerRef.current?.abort();
+      messageLoadControllerRef.current = null;
+    };
+  }, [loadConversation]);
 
   useEffect(() => {
     selectedAttachmentsRef.current = selectedAttachments;
@@ -179,6 +230,16 @@ export default function ChatMain({ className, conversationId }: Props) {
   function rateMessage(id: string, rating: "up" | "down") {
     rateMessageMutation.mutate({ id, rating });
   }
+
+  useEffect(() => {
+    if (previousConversationIdRef.current === conversationId) return;
+    previousConversationIdRef.current = conversationId;
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    retryRequestRef.current = null;
+    setIsPending(false);
+    setError("");
+  }, [conversationId]);
 
   useEffect(() => () => abortControllerRef.current?.abort(), []);
 
@@ -270,7 +331,7 @@ export default function ChatMain({ className, conversationId }: Props) {
         assistantMessageId,
         payload: {
           message: messageForApi,
-          conversationId: "new", //! FIX
+          conversationId,
           model: "qwen/qwen3.8-27b",
         },
       };
@@ -564,7 +625,7 @@ export default function ChatMain({ className, conversationId }: Props) {
 
   return (
     <section
-      className={`${className ?? ""} ${styles.container} ${messages.length === 0 ? styles.empty : ""} `}
+      className={`${className ?? ""} ${styles.container} ${activeMessages.length === 0 ? styles.empty : ""} ${isLoadingConversation || hasConversationLoadError ? styles.hasConversationStatus : ""}`}
     >
       <nav className={styles.nav}>
         {/* <button
@@ -610,10 +671,24 @@ export default function ChatMain({ className, conversationId }: Props) {
         )}
       </nav>
       {/* ============= Body =============*/}
-      {messages.length > 0 && (
+      {isLoadingConversation && (
+        <output className={styles.messageLoading}>
+          <span className={styles.messageLoader} aria-hidden="true" />
+          <span>Loading conversation...</span>
+        </output>
+      )}
+      {hasConversationLoadError && (
+        <div className={styles.messageLoadError} role="alert">
+          <p>Could not load this conversation.</p>
+          <button type="button" onClick={() => void loadConversation()}>
+            Try again
+          </button>
+        </div>
+      )}
+      {activeMessages.length > 0 && (
         <div className={styles.chatContainer}>
           <div className={styles.chatWrapper}>
-            {messages.map((message) => {
+            {activeMessages.map((message) => {
               const messageId = message.id;
 
               const { id, role, content } = message;
@@ -867,7 +942,7 @@ export default function ChatMain({ className, conversationId }: Props) {
       )}
 
       <div className={styles.inputContainer}>
-        {messages.length === 0 && (
+        {activeMessages.length === 0 && (
           <div className="headline-wrapper">
             <p className="headline">What should we explore?</p>
           </div>

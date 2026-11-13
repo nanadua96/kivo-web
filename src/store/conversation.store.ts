@@ -8,8 +8,6 @@
 
 // export const useMessage = create<MessageState>((set) => ({
 //   expanded: true,
-//   showAuthModal: false,
-
 //   messages: [],
 
 //   initMessages: (messages) => set({ messages }),
@@ -19,8 +17,6 @@
 
 //   toggleSidebar: () => set((state) => ({ expanded: !state.expanded })),
 
-//   toggleAuthModal: () =>
-//     set((state) => ({ showAuthModal: !state.showAuthModal })),
 // }));
 
 // import { create } from "zustand";

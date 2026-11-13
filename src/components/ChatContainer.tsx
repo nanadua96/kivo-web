@@ -1,9 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useSidebar } from "@/store";
-import AuthModal from "./AuthModal";
 import styles from "./ChatContainer.module.css";
 import ChatMain from "./ChatMain";
 import ChatSidebar from "./ChatSidebar";
@@ -16,13 +14,7 @@ export function ChatContainer({ conversationId }: Props) {
   const expanded = useSidebar((state) => state.expanded);
   const toggleSidebar = useSidebar((state) => state.toggleSidebar);
 
-  const showAuthModal = useSidebar((state) => state.showAuthModal);
-
   const [initialized, setInitialized] = useState(false);
-
-  // const messagesQuery = useQuery({
-  //   queryKey: ["messages", conversationId],
-  // });
 
   useEffect(() => {
     const mobileQuery = window.matchMedia("(max-width: 800px)");
@@ -45,7 +37,7 @@ export function ChatContainer({ conversationId }: Props) {
     <div
       className={`${styles.container} ${expanded ? "" : styles.collapse} ${initialized ? "" : styles.initializing}`}
     >
-      <ChatSidebar className={styles.sidebar}  conversationId={conversationId}/>
+      <ChatSidebar className={styles.sidebar} />
       {initialized && expanded && (
         <button
           type="button"
@@ -55,7 +47,6 @@ export function ChatContainer({ conversationId }: Props) {
         />
       )}
       <ChatMain className={styles.chat} conversationId={conversationId} />
-      {showAuthModal && <AuthModal onClose={() => console.log("Hello")} />}
     </div>
   );
 }
