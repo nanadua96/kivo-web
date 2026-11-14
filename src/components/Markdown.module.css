@@ -139,7 +139,7 @@
   overflow-x: auto;
   background: transparent;
   color: inherit;
-  font-family: var(--font-mono, "SFMono-Regular", Consolas, monospace);
+  font-family: var(--font-mono, monospace);
   font-size: 13px;
   line-height: 1.65;
   tab-size: 2;

@@ -21,6 +21,7 @@ import { useSidebar } from "@/store";
 import { useMessages } from "@/store/message.store";
 import type { Messages } from "@/types/message.types";
 import styles from "./ChatMain.module.css";
+import { Icon } from "./Icons";
 import Markdown, { ThinkingIndicator } from "./Markdown";
 
 type Props = {
@@ -838,7 +839,9 @@ export default function ChatMain({ className, conversationId }: Props) {
                         aria-label="Copy message"
                         data-tooltip="Copy"
                       >
-                        <Copy3 color={MESSAGE_BUTTON_COLOR} />
+                        {/* <Copy3 color={MESSAGE_BUTTON_COLOR} /> */}
+
+                        <Icon name="ic_fluent_copy_24_regular" />
                       </button>
                       {/* Rating up */}
                       <button

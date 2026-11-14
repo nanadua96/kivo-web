@@ -427,12 +427,12 @@
 }
 
 .senderBubble {
-  background-color: #f0efed;
+  background-color: var(--user-message-background);
   color: black;
   padding: var(--8px) var(--14px);
-  border-radius: var(--20px);
+  border-radius: var(--user-message-radius);
   /* align-self: flex-end; */
-  font-size: var(--16px);
+  font-size: var(--14px);
   max-width: 75%;
 }
 

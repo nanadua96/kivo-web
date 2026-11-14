@@ -19,7 +19,8 @@
   width: 260px;
   min-width: 0;
   border-right: 1px solid rgb(0 0 0 / 10%);
-  background: #fafafa;
+  /* background-color: var; */
+  /* background: #fafafa; */
 }
 
 .workspace {
