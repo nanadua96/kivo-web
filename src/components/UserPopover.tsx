@@ -82,14 +82,7 @@ export function UserPopover() {
 
       {isOpen && (
         <div className={styles.menu} role="menu" aria-label="Account options">
-          <div className={styles.menuAccount}>
-            <span className={styles.avatar} aria-hidden="true">
-              {avatar.toUpperCase()}
-            </span>
-            <span className={styles.menuEmail} title={email}>
-              {email}
-            </span>
-          </div>
+          {/* <div className={styles.menuAccount}></div> */}
           <Link
             href="/settings"
             className={styles.menuItem}
@@ -99,8 +92,6 @@ export function UserPopover() {
             <Gear />
             <span>Settings</span>
           </Link>
-
-          <div className={styles.divider} />
 
           <button
             type="button"

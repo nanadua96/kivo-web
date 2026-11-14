@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Paperclip } from "lucide-react";
+import { PanelLeft, Paperclip } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -62,53 +62,21 @@ type ConversationLoadState = {
   status: "loading" | "loaded" | "error";
 };
 
-const MAX_ATTACHMENTS = 5;
-const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
-const MAX_TEXT_FILE_BYTES = 1024 * 1024;
-const TEXT_FILE_EXTENSIONS = new Set([
-  "c",
-  "cpp",
-  "css",
-  "csv",
-  "h",
-  "html",
-  "java",
-  "js",
-  "jsx",
-  "json",
-  "log",
-  "md",
-  "py",
-  "sh",
-  "sql",
-  "toml",
-  "ts",
-  "tsx",
-  "txt",
-  "xml",
-  "yaml",
-  "yml",
-]);
-
 function createId() {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
-}
-
-function isTextFile(file: File) {
-  const extension = file.name.split(".").pop()?.toLowerCase();
-  return (
-    file.type.startsWith("text/") || TEXT_FILE_EXTENSIONS.has(extension ?? "")
-  );
 }
 
 function readAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
+
     reader.onload = () => {
       if (typeof reader.result === "string") resolve(reader.result);
       else reject(new Error(`Could not read ${file.name}.`));
     };
+
     reader.onerror = () => reject(new Error(`Could not read ${file.name}.`));
+
     reader.readAsDataURL(file);
   });
 }
@@ -139,10 +107,12 @@ async function throwResponseError(response: Response): Promise<never> {
 
 function getStreamContent(event: Record<string, unknown>) {
   const choices = Array.isArray(event.choices) ? event.choices[0] : undefined;
+
   const delta =
     choices && typeof choices === "object"
       ? (choices as Record<string, unknown>).delta
       : undefined;
+
   const deltaContent =
     delta && typeof delta === "object"
       ? (delta as Record<string, unknown>).content
@@ -165,8 +135,11 @@ async function readEventStream(
   }
 
   const reader = response.body.getReader();
+
   const decoder = new TextDecoder();
+
   let buffer = "";
+
   let receivedDoneEvent = false;
 
   const processEvent = (block: string) => {
@@ -184,16 +157,20 @@ async function readEventStream(
     }
 
     let event: unknown;
+
     try {
       event = JSON.parse(data);
     } catch {
       throw new Error("The server sent an invalid streaming response.");
     }
+
     if (!event || typeof event !== "object") return;
 
     const payload = event as Record<string, unknown>;
+
     if (payload.error) {
       const errorValue = payload.error;
+
       const serverError =
         typeof errorValue === "string"
           ? errorValue
@@ -203,6 +180,7 @@ async function readEventStream(
                 "string"
             ? ((errorValue as Record<string, unknown>).message as string)
             : "The server could not complete your request.";
+
       throw new Error(serverError);
     }
 
@@ -211,11 +189,15 @@ async function readEventStream(
 
   while (!receivedDoneEvent && !signal.aborted) {
     const { value, done } = await reader.read();
+
     if (done) break;
 
     buffer += decoder.decode(value, { stream: true });
+
     const events = buffer.split(/\r?\n\r?\n/);
+
     buffer = events.pop() ?? "";
+
     for (const streamEvent of events) {
       processEvent(streamEvent);
       if (receivedDoneEvent) break;
@@ -234,9 +216,6 @@ export default function ChatMain({ className, conversationId }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  // =============================
-  // SIDEBAR
-  // =============================
   const expanded = useSidebar((state) => state.expanded);
   const toggleSidebar = useSidebar((state) => state.toggleSidebar);
 
@@ -254,7 +233,6 @@ export default function ChatMain({ className, conversationId }: Props) {
   );
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const messageLoadControllerRef = useRef<AbortController | null>(null);
   const retryRequestRef = useRef<RetryRequest | null>(null);
@@ -278,15 +256,18 @@ export default function ChatMain({ className, conversationId }: Props) {
 
   const isInputEmpty =
     input.trim().length === 0 && selectedAttachments.length === 0;
+
   const activeMessages =
     conversationLoadState.conversationId === conversationId &&
     conversationLoadState.status === "loaded"
       ? messages
       : [];
+
   const isLoadingConversation =
     conversationId !== "new" &&
     (conversationLoadState.conversationId !== conversationId ||
       conversationLoadState.status === "loading");
+
   const hasConversationLoadError =
     conversationLoadState.conversationId === conversationId &&
     conversationLoadState.status === "error";
@@ -330,7 +311,7 @@ export default function ChatMain({ className, conversationId }: Props) {
   }, [clearMessages, conversationId, initMessages]);
 
   useEffect(() => {
-    void loadConversation();
+    loadConversation();
     return () => {
       messageLoadControllerRef.current?.abort();
       messageLoadControllerRef.current = null;
@@ -413,50 +394,9 @@ export default function ChatMain({ className, conversationId }: Props) {
     setAttachmentError("");
 
     try {
-      const attachmentPayload = await Promise.all(
-        selectedAttachments.map(
-          async ({ file }): Promise<MessageAttachment> => {
-            if (isTextFile(file)) {
-              return {
-                name: file.name,
-                type: file.type || "text/plain",
-                content: await file.text(),
-              };
-            }
-
-            return {
-              name: file.name,
-              type: file.type,
-              data: await readAsDataUrl(file),
-            };
-          },
-        ),
-      );
       if (controller.signal.aborted) return;
 
-      const textFileContext = attachmentPayload
-        .filter((attachment) => attachment.content !== undefined)
-        .map(
-          (attachment) =>
-            `\n\n[Attached text file: ${attachment.name}]\n${attachment.content}\n[End of ${attachment.name}]`,
-        )
-        .join("");
-
-      const imageContext = attachmentPayload
-        .filter((attachment) => attachment.data !== undefined)
-        .map((attachment) => attachment.name);
-
-      const userMessageText =
-        inputValue ||
-        (attachmentPayload.length ? "Please review the attached file(s)." : "");
-
-      const messageForApi = [
-        userMessageText,
-        textFileContext,
-        imageContext.length
-          ? `\n\nAttached image(s): ${imageContext.join(", ")}`
-          : "",
-      ].join("");
+      const userMessageText = inputValue;
 
       const userMessageId = createId();
 
@@ -471,7 +411,6 @@ export default function ChatMain({ className, conversationId }: Props) {
           content: userMessageText,
           text: userMessageText,
           createdAt,
-          attachments: attachmentPayload,
         },
         {
           id: assistantMessageId,
@@ -485,7 +424,7 @@ export default function ChatMain({ className, conversationId }: Props) {
       const request: RetryRequest = {
         assistantMessageId,
         payload: {
-          message: messageForApi,
+          message: userMessageText,
           conversationId,
           model: "qwen/qwen3.8-27b",
         },
@@ -496,12 +435,6 @@ export default function ChatMain({ className, conversationId }: Props) {
       setInput("");
 
       if (inputRef.current) inputRef.current.style.height = "auto";
-
-      selectedAttachments.forEach(({ previewUrl }) => {
-        if (previewUrl) URL.revokeObjectURL(previewUrl);
-      });
-
-      setSelectedAttachments([]);
 
       await streamRequest(request, controller);
     } catch (caught: unknown) {
@@ -769,6 +702,7 @@ export default function ChatMain({ className, conversationId }: Props) {
   }
 
   const MESSAGE_BUTTON_COLOR = "#8f8f8f";
+
   return (
     <section
       className={`${className ?? ""} ${styles.container} ${activeMessages.length === 0 ? styles.empty : ""} ${isLoadingConversation || hasConversationLoadError ? styles.hasConversationStatus : ""}`}
@@ -783,7 +717,7 @@ export default function ChatMain({ className, conversationId }: Props) {
             aria-label="Open sidebar"
             aria-expanded={expanded}
           >
-            <Sidebar2 />
+            <PanelLeft />
           </button>
         )}
       </nav>
@@ -956,7 +890,7 @@ export default function ChatMain({ className, conversationId }: Props) {
       <div className={styles.inputContainer}>
         {activeMessages.length === 0 && (
           <div className="headline-wrapper">
-            <p className="headline">What should we explore?</p>
+            <p className="headline">Start a new chat</p>
           </div>
         )}
 
@@ -980,7 +914,7 @@ export default function ChatMain({ className, conversationId }: Props) {
           <textarea
             id="chat"
             className="input"
-            placeholder="Ask me anything..."
+            placeholder="Ask Kivo anything..."
             ref={inputRef}
             value={input}
             rows={1}
@@ -1005,14 +939,10 @@ export default function ChatMain({ className, conversationId }: Props) {
               onClick={() => console.log("File input pressed!")}
               aria-label="Attach images or text files"
               title="Attach images or text files"
-              disabled={isPending}
+              disabled={true}
+              // disabled={isPending}
             >
-              {/* <Paperclip /> */}
-
               <Paperclip />
-              {/* <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m21.4 11.1-8.5 8.5a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5" />
-              </svg> */}
             </button>
 
             {attachmentError && (

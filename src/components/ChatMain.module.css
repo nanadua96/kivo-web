@@ -287,6 +287,10 @@
   &:disabled {
     cursor: not-allowed;
     opacity: 0.55;
+
+    & svg {
+      stroke: #7f7f7f;
+    }
   }
 
   & svg {
