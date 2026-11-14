@@ -5,10 +5,10 @@
   height: 100%;
   min-height: 0;
   overflow: hidden;
+  /* padding-inline: 16px; */
 
   &.empty {
     grid-template-rows: min-content auto;
-    /* background-color: lightpink; */
   }
 
   &.hasConversationStatus {
@@ -27,22 +27,15 @@
   display: flex;
   justify-content: center;
   scrollbar-width: none;
+  padding-inline: 16px;
 }
 
 .chatWrapper {
-  /* padding: var(--16px) var(--64px); */
-  /* gap: var(--48px); */
-  /* flex-direction: column; */
-  /* display: flex; */
-  /* overflow-y: auto; */
-
-  /* max-width: 46.25rem; */
-  /* justify-self: center; */
-
-  gap: 8px;
   display: flex;
   flex-direction: column;
+  gap: 8px;
   max-width: 43rem;
+  width: 100%;
 }
 
 .messageLoading,
@@ -82,53 +75,6 @@
   }
 }
 
-.scrollButton {
-  position: absolute;
-  z-index: 3;
-  right: max(20px, calc((100% - 740px) / 2 + 20px));
-  display: grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  border: 1px solid #e4e6eb;
-  border-radius: 50%;
-  background: #fff;
-  color: #333842;
-  box-shadow: 0 3px 12px rgb(0 0 0 / 12%);
-  cursor: pointer;
-  transition:
-    background 150ms ease,
-    transform 150ms ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    background: #f7f8fa;
-  }
-
-  &:focus-visible {
-    outline: 2px solid #7d8798;
-    outline-offset: 3px;
-  }
-
-  & svg {
-    width: 19px;
-    height: 19px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.8;
-  }
-}
-
-.scrollToTop {
-  top: 72px;
-}
-
-.scrollToEnd {
-  bottom: 116px;
-}
-
 .inputContainer {
   display: flex;
   flex-direction: column;
@@ -154,37 +100,12 @@
   }
 }
 
-/* .wrapper {
-  height: 100%;
-  width: 100%;
-}
-
-.popover {
-  margin: 0;
-  inset: auto;
-  background-color: palegreen;
-  position-area: right;
-}
- */
-
 .nav {
-  padding: calc(16rem / 16);
-  display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-/* .nav-button-group {
-  margin-left: auto;
   display: flex;
-  gap: 8px;
-} */
-
-/* .nav.no-auth {
-  @media (width < 800px) {
-    display: block;
-  }
-} */
+  gap: var(--10px);
+  height: var(--64px);
+}
 
 .hamburgerButton {
   cursor: pointer;
@@ -478,7 +399,7 @@
 /* Markdown */
 .markdownBody {
   align-self: flex-start;
-  gap: var(--16px);
+  gap: var(--12px);
   flex-direction: column;
   width: 100%;
   display: flex;
@@ -487,12 +408,10 @@
 
 /* Send message bubble */
 .senderBubbleWrapper {
-  /* width: 75%; */
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
-  /* background-color: aliceblue; */
 }
 
 .senderBubbleWrapper:hover .senderBubbleButtonGroup {
@@ -507,41 +426,40 @@
   background-color: #f0efed;
   color: black;
   padding: var(--8px) var(--14px);
-  border-radius: 20px;
+  border-radius: var(--20px);
   /* align-self: flex-end; */
   font-size: var(--16px);
   max-width: 75%;
 }
 
 .senderBubbleButtonGroup {
-  display: flex;
-  gap: 8px;
+  /* display: flex;
+  gap: var(--8px); */
   opacity: 0;
 }
 
 .senderBubbleButtonGroup button {
-  font-size: var(--14px);
+  /* font-size: var(--14px);
   display: flex;
   align-items: center;
   gap: var(--8px);
-  /* padding: var(--8px); */
   justify-content: center;
-  height: 32px;
-  width: 32px;
+  height: var(--32px);
+  width: var(--32px);
   border-radius: var(--8px);
   transition: background-color 200ms ease-out;
 
   & svg {
     width: 18px;
     height: 18px;
-    fill: #686868;
   }
 
   &:hover {
     background-color: whitesmoke;
-  }
+  } */
 }
 
+/* User bubble */
 .userBubbleEdit {
   display: flex;
   flex-direction: column;
@@ -592,6 +510,53 @@
     width: 18px;
     height: 18px;
     fill: #686868;
+  }
+
+  &:hover {
+    background-color: whitesmoke;
+  }
+}
+
+/* Assistant */
+.assistantButtonGroup {
+  display: flex;
+  gap: var(--8px);
+}
+
+.assistantButtonGroupButton {
+  font-size: var(--14px);
+  display: flex;
+  align-items: center;
+  gap: var(--8px);
+  padding: var(--4px);
+  border-radius: var(--8px);
+
+  & svg {
+    width: var(--18px);
+    height: var(--18px);
+  }
+
+  &:hover {
+    background-color: whitesmoke;
+  }
+}
+
+.messageButtonGroup {
+  display: flex;
+  gap: var(--8px);
+}
+
+.messageButtonGroup button {
+  font-size: var(--14px);
+  display: flex;
+  align-items: center;
+  gap: var(--8px);
+  padding: var(--4px);
+  border-radius: var(--8px);
+
+  & svg {
+    width: var(--18px);
+    height: var(--18px);
   }
 
   &:hover {

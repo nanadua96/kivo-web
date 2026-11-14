@@ -30,6 +30,7 @@ import {
 } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PinTack, Sidebar2 } from "reicon-react";
 import { api } from "@/lib/api";
 import { useSidebar } from "@/store";
 import { useMessages } from "@/store/message.store";
@@ -238,57 +239,15 @@ export default function ChatSidebar({ className }: Props) {
           <div className={styles.sidebarHeaderGroup}>
             <button
               type="button"
-              onClick={() => setIsSearchOpen(true)}
-              className={styles.iconButton}
-              aria-label="Search conversations"
-              title="Search conversations"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-                height="24px"
-                viewBox="0 -960 960 960"
-                width="24px"
-                fill="#1f1f1f"
-              >
-                <path d="M380-320q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l224 224q11 11 11 28t-11 28q-11 11-28 11t-28-11L532-372q-30 24-69 38t-83 14Zm0-80q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z" />
-              </svg>
-            </button>
-            <button
-              type="button"
               onClick={toggleSidebar}
               className={styles.iconButton}
               aria-label="Collapse sidebar"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="24px"
-                viewBox="0 -960 960 960"
-                width="24px"
-                fill="#1f1f1f"
-              >
-                <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm280-80h280v-560H480v560Z" />
-              </svg>
+              <Sidebar2 />
             </button>
           </div>
         </header>
-
-        {/* <div className="sidebar-row-2">
-            <button onClick={handleNewChat} className={styles.sidebarBtn}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="24px"
-                viewBox="0 -960 960 960"
-                width="24px"
-                fill="#1f1f1f"
-              >
-                <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Zm481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z" />
-              </svg>
-              <span>New chat</span>
-            </button>
-          </div> */}
-
-        <section className="sidebar-row-2">
+        <section className={styles.sidebarRow2}>
           <button
             onClick={handleNewChat}
             type="button"
@@ -314,7 +273,7 @@ export default function ChatSidebar({ className }: Props) {
             className={`${styles.conversationList} sidebar-row-3`}
             aria-label="Recent conversations"
           >
-            <p>Recents</p>
+            <p>Chats</p>
             {conversationQuery.isPending && (
               <div className={styles.conversationState} role="status">
                 <span className={styles.loader} aria-hidden="true" />
@@ -356,15 +315,7 @@ export default function ChatSidebar({ className }: Props) {
                           c.pinned ? "Unpin conversation" : "Pin conversation"
                         }
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          height="24px"
-                          viewBox="0 -960 960 960"
-                          width="24px"
-                          fill="#1f1f1f"
-                        >
-                          <path d="M640-760v280l68 68q6 6 9 13.5t3 15.5v23q0 17-11.5 28.5T680-320H520v234q0 17-11.5 28.5T480-46q-17 0-28.5-11.5T440-86v-234H280q-17 0-28.5-11.5T240-360v-23q0-8 3-15.5t9-13.5l68-68v-280q-17 0-28.5-11.5T280-800q0-17 11.5-28.5T320-840h320q17 0 28.5 11.5T680-800q0 17-11.5 28.5T640-760Z" />
-                        </svg>
+                        <PinTack weight="Filled" />
                       </div>
                     </span>
                   )}
@@ -447,16 +398,13 @@ export default function ChatSidebar({ className }: Props) {
           <UserPopover />
         </div>
       </aside>
-      {isSearchOpen && (
-        <SearchModal onClose={closeSearch} onSelect={selectSearchResult} />
-      )}
+      {/* =========== MODALS =========== */}
       {conversationToRename && (
         <RenameConversationModal
           currentTitle={conversationToRename.title}
           isPending={renameMutation.isPending}
           onClose={() => setConversationToRename(null)}
           onRename={async (title) => {
-            // console.log(title);
             await renameMutation.mutateAsync({
               id: conversationToRename.id,
               newTitle: title,

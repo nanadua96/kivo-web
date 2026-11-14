@@ -1,131 +1,116 @@
-@layer base {
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-  }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-  *:not(dialog) {
-    margin: 0;
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    interpolate-size: allow-keywords;
   }
+}
 
-  @media (prefers-reduced-motion: no-preference) {
-    html {
-      interpolate-size: allow-keywords;
-    }
-  }
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
 
-  body {
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-  }
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
 
-  img,
-  picture,
-  video,
-  canvas,
-  svg {
-    display: block;
-    max-width: 100%;
-  }
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
 
-  input,
-  button,
-  textarea,
-  select {
-    font: inherit;
-  }
+p {
+  text-wrap: pretty;
+}
 
-  p,
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    overflow-wrap: break-word;
-  }
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+}
 
-  p {
-    text-wrap: pretty;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    text-wrap: balance;
-  }
-
-  /* html {
+/* html {
   color-scheme: light;
 } */
 
-  /* @media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
   }
 } */
 
-  :root {
-    --bg-primary: #ffffff;
-    --accent: #3566f0;
+:root {
+  --bg-primary: #ffffff;
+  --accent: #3566f0;
 
-    --font-family: "Inter", system-ui, sans-serif;
+  /* Colors */
+  --background-primary: #ccc;
+  --content-primary: #ccc;
 
-    --8px: calc(8rem / 16);
-    --12px: calc(12rem / 16);
-    --14px: calc(14rem / 16);
-    --16px: calc(16rem / 16);
-    --18px: calc(18rem / 16);
-    --20px: calc(20rem / 16);
-    --24px: calc(24rem / 16);
-    --32px: calc(32rem / 16);
-    --48px: calc(48rem / 16);
-    --64px: calc(64rem / 16);
-    --128px: calc(128rem / 16);
+  --font-family: "Inter", system-ui, sans-serif;
 
-    --radius-large: calc(999rem / 16);
-  }
+  /* Sizes */
+  --2px: calc(2rem / 16);
+  --4px: calc(4rem / 16);
+  --6px: calc(6rem / 16);
+  --8px: calc(8rem / 16);
+  --10px: calc(10rem / 16);
+  --12px: calc(12rem / 16);
+  --14px: calc(14rem / 16);
+  --16px: calc(16rem / 16);
+  --18px: calc(18rem / 16);
+  --20px: calc(20rem / 16);
+  --24px: calc(24rem / 16);
+  --32px: calc(32rem / 16);
+  --40px: calc(40rem / 16);
+  --42px: calc(42rem / 16);
+  --48px: calc(48rem / 16);
+  --64px: calc(64rem / 16);
+  --128px: calc(128rem / 16);
 
-  body {
-    /* font-family: var('--font-primary'); */
-    font-family: "Inter Tight", system-ui, sans-serif;
-    /* font-family: var('--font-primary'), system-ui, sans-serif; */
-    /* font-family: var('--font-primary'); */
-    font-size: var(--16px);
-    /* width: 100%; */
-    /* height: 100vh; */
-    /* height: 100dvh; */
-    /* display: flex; */
-    /* background-color: #f8f7f7; */ /* VAR THIS - --bg-primary */
-    /* background-color: var(--bg-primary); */
+  --sidebar-width: calc(260rem / 16);
 
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
-    margin: 0;
-    padding: 0;
-    overflow: hidden; /* Prevent body-level scroll if you want an app-like feel */
-    /* background-color: lavenderblush; */
-  }
+  --radius-large: calc(999rem / 16);
 }
 
-/* .root {
-  height: 100%;
+body {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: var(--16px);
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
-} */
-
-/* //////////////////////////////////*  REAL */
-
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+/* 
 .logo {
   font-size: var(--20px);
   font-weight: 700;
   font-family: "Inter", system-ui, sans-serif;
   text-transform: uppercase;
-  padding-top: 16px;
   color: #171717;
   text-decoration: none;
   padding: var(--8px);
@@ -136,27 +121,26 @@
   &:hover {
     background-color: whitesmoke;
   }
-}
+} */
 
-.sidebar {
+/* .sidebar {
   width: 15%;
   border-right: 1px solid rgba(0, 0, 0, 0.1);
   padding-inline: var(--8px);
   display: flex;
   flex-direction: column;
   gap: var(--32px);
-  /* background-color: #f5f3f2; */ /* VAR THIS - --bg-secondary */
-}
+} */
 
-.sidebar-row {
+/* .sidebar-row {
   display: flex;
   flex-direction: column;
-}
+} */
 
-.sidebar-row-2 {
+/* .sidebar-row-2 {
   display: flex;
   flex-direction: column;
-}
+} */
 
 .sidebar-row-3 {
   display: flex;

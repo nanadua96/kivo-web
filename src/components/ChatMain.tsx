@@ -1,10 +1,20 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Paperclip } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ArrowUp,
+  Copy3,
+  Edit2,
+  // Paperclip,
+  Sidebar2,
+  Stop,
+  ThumbsDown,
+  ThumbsUp,
+} from "reicon-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useSidebar } from "@/store";
@@ -348,8 +358,8 @@ export default function ChatMain({ className, conversationId }: Props) {
     try {
       await navigator.clipboard.writeText(text);
       toast.success("Copied");
-    } catch (err) {
-      console.error("Failed to copy:", err);
+    } catch (error) {
+      console.error("Failed to copy:", error);
     }
   }
 
@@ -389,10 +399,12 @@ export default function ChatMain({ className, conversationId }: Props) {
     if ((!inputValue && selectedAttachments.length === 0) || isPending) return;
 
     const controller = new AbortController();
+
     abortControllerRef.current = controller;
     retryRequestRef.current = null;
     editRequestRef.current = null;
     activeAssistantMessageIdRef.current = null;
+
     setStoppedMessageId(null);
     setEditingMessageId(null);
     setEditText("");
@@ -512,11 +524,10 @@ export default function ChatMain({ className, conversationId }: Props) {
     request: RetryRequest,
     controller: AbortController,
   ) {
-    // console.log("🚨", request.payload);
-    // return;
-
     updateMessage(request.assistantMessageId, "");
+
     setError("");
+
     let createdConversationId: string | null = null;
 
     try {
@@ -557,7 +568,7 @@ export default function ChatMain({ className, conversationId }: Props) {
                 },
               };
             }
-            void queryClient.invalidateQueries({
+            queryClient.invalidateQueries({
               queryKey: ["conversations"],
             });
           }
@@ -588,70 +599,6 @@ export default function ChatMain({ className, conversationId }: Props) {
         );
       }
     }
-  }
-
-  function handleAttachmentSelection(
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) {
-    const files = Array.from(event.currentTarget.files ?? []);
-    let totalBytes = selectedAttachments.reduce(
-      (total, attachment) => total + attachment.file.size,
-      0,
-    );
-    const addedAttachments: SelectedAttachment[] = [];
-    let validationError = "";
-
-    for (const file of files) {
-      const isImage = [
-        "image/png",
-        "image/jpeg",
-        "image/gif",
-        "image/webp",
-      ].includes(file.type);
-      if (!isImage && !isTextFile(file)) {
-        validationError = `${file.name} is not a supported image or text file.`;
-        continue;
-      }
-
-      if (!isImage && file.size > MAX_TEXT_FILE_BYTES) {
-        validationError = `${file.name} is larger than the 1 MB text-file limit.`;
-        continue;
-      }
-
-      if (
-        selectedAttachments.length + addedAttachments.length >=
-        MAX_ATTACHMENTS
-      ) {
-        validationError = `Attach up to ${MAX_ATTACHMENTS} files at a time.`;
-        break;
-      }
-
-      if (totalBytes + file.size > MAX_ATTACHMENT_BYTES) {
-        validationError = "Attachments must total 10 MB or less.";
-        continue;
-      }
-
-      totalBytes += file.size;
-      addedAttachments.push({
-        id: createId(),
-        file,
-        previewUrl: isImage ? URL.createObjectURL(file) : undefined,
-      });
-    }
-
-    if (addedAttachments.length) {
-      setSelectedAttachments((current) => [...current, ...addedAttachments]);
-    }
-    setAttachmentError(validationError);
-    event.currentTarget.value = "";
-  }
-
-  function removeAttachment(id: string) {
-    setSelectedAttachments((current) => {
-      const attachment = current.find((item) => item.id === id);
-      if (attachment?.previewUrl) URL.revokeObjectURL(attachment.previewUrl);
-      return current.filter((item) => item.id !== id);
-    });
   }
 
   function startEditingPrompt(messageId: string, content: string) {
@@ -691,6 +638,7 @@ export default function ChatMain({ className, conversationId }: Props) {
     if (!response.ok) await throwResponseError(response);
 
     let assistantMessageId: string | null = null;
+
     await readEventStream(response, controller.signal, (event) => {
       if (!assistantMessageId && typeof event.id === "string" && event.id) {
         const replaced = replaceMessagesAfter(
@@ -704,12 +652,15 @@ export default function ChatMain({ className, conversationId }: Props) {
             createdAt: new Date().toISOString(),
           },
         );
+
         if (!replaced) {
           throw new Error(
             "This prompt is no longer available to edit. Reload the conversation and try again.",
           );
         }
+
         assistantMessageId = event.id;
+
         activeAssistantMessageIdRef.current = event.id;
         setEditingMessageId(null);
         setEditText("");
@@ -768,14 +719,17 @@ export default function ChatMain({ className, conversationId }: Props) {
     messageId: string,
   ) {
     event.preventDefault();
+
     const message = editText.trim();
+
     if (!message) {
       setError("Enter a prompt before submitting.");
       return;
     }
+
     if (isPending) return;
 
-    void runEditRequest({ messageId, message });
+    runEditRequest({ messageId, message });
   }
 
   async function retryLastRequest() {
@@ -795,6 +749,7 @@ export default function ChatMain({ className, conversationId }: Props) {
     setIsPending(true);
     setError("");
     setStoppedMessageId(null);
+
     try {
       await streamRequest(request, controller);
     } finally {
@@ -813,32 +768,13 @@ export default function ChatMain({ className, conversationId }: Props) {
     abortControllerRef.current?.abort();
   }
 
+  const MESSAGE_BUTTON_COLOR = "#8f8f8f";
   return (
     <section
       className={`${className ?? ""} ${styles.container} ${activeMessages.length === 0 ? styles.empty : ""} ${isLoadingConversation || hasConversationLoadError ? styles.hasConversationStatus : ""}`}
     >
+      {/* ============= NAV BAR =============*/}
       <nav className={styles.nav}>
-        {/* <button
-          type="button"
-          className={styles.hamburgerButton}
-          onClick={toggleSidebar}
-          aria-label={expanded ? "Collapse sidebar" : "Open sidebar"}
-          aria-expanded={expanded}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-            height="24px"
-            viewBox="0 -960 960 960"
-            width="24px"
-            fill="#1f1f1f"
-          >
-            <path d="M160-240q-17 0-28.5-11.5T120-280q0-17 11.5-28.5T160-320h640q17 0 28.5 11.5T840-280q0 17-11.5 28.5T800-240H160Zm0-200q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h640q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440H160Zm0-200q-17 0-28.5-11.5T120-680q0-17 11.5-28.5T160-720h640q17 0 28.5 11.5T840-680q0 17-11.5 28.5T800-640H160Z" />
-          </svg>
-        </button> */}
-
-        <Link href="https://github.com/nanadua96/kivo-web">GitHub</Link>
-
         {!expanded && (
           <button
             type="button"
@@ -847,34 +783,27 @@ export default function ChatMain({ className, conversationId }: Props) {
             aria-label="Open sidebar"
             aria-expanded={expanded}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-              height="24px"
-              viewBox="0 -960 960 960"
-              width="24px"
-              fill="#1f1f1f"
-            >
-              <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm280-80h280v-560H480v560Z" />
-            </svg>
+            <Sidebar2 />
           </button>
         )}
       </nav>
-      {/* ============= Body =============*/}
+      {/* ============= CHAT =============*/}
       {isLoadingConversation && (
         <output className={styles.messageLoading}>
           <span className={styles.messageLoader} aria-hidden="true" />
           <span>Loading conversation...</span>
         </output>
       )}
+
       {hasConversationLoadError && (
         <div className={styles.messageLoadError} role="alert">
           <p>Could not load this conversation.</p>
-          <button type="button" onClick={() => void loadConversation()}>
+          <button type="button" onClick={loadConversation}>
             Try again
           </button>
         </div>
       )}
+
       {activeMessages.length > 0 && (
         <div className={styles.chatContainer}>
           <div className={styles.chatWrapper}>
@@ -901,7 +830,7 @@ export default function ChatMain({ className, conversationId }: Props) {
                           rows={3}
                         />
                       </div>
-                      <div className={styles.userBubbleButtonGroup}>
+                      <div className={styles.messageBubbleButtonGroup}>
                         <button
                           onClick={cancelEditingPrompt}
                           type="button"
@@ -924,46 +853,17 @@ export default function ChatMain({ className, conversationId }: Props) {
                   <div key={id} className={styles.senderBubbleWrapper}>
                     <div className={styles.senderBubble}>
                       <p>{content}</p>
-                      {message.attachments &&
-                        message.attachments.length > 0 && (
-                          <div className={styles.sentAttachments}>
-                            {message.attachments.map((attachment) => (
-                              <div
-                                key={`${attachment.name}-${attachment.type}`}
-                                className={styles.sentAttachment}
-                              >
-                                {attachment.data && (
-                                  <Image
-                                    src={attachment.data}
-                                    alt={attachment.name}
-                                    width={42}
-                                    height={42}
-                                    unoptimized
-                                  />
-                                )}
-                                <span>{attachment.name}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
                     </div>
-                    <div className={styles.senderBubbleButtonGroup}>
+                    <div
+                      className={`${styles.messageButtonGroup} ${styles.senderBubbleButtonGroup}`}
+                    >
                       <button
                         onClick={() => handleCopy(message.content)}
                         type="button"
                         aria-label="Copy message"
                         data-tooltip="Copy"
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                          height="24px"
-                          viewBox="0 -960 960 960"
-                          width="24px"
-                          fill="#1f1f1f"
-                        >
-                          <path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-520q0-17 11.5-28.5T160-720q17 0 28.5 11.5T200-680v520h400q17 0 28.5 11.5T640-120q0 17-11.5 28.5T600-80H200Zm160-240v-480 480Z" />
-                        </svg>
+                        <Copy3 color={MESSAGE_BUTTON_COLOR} />
                       </button>
                       <button
                         onClick={() => startEditingPrompt(messageId, content)}
@@ -972,16 +872,7 @@ export default function ChatMain({ className, conversationId }: Props) {
                         data-tooltip="Edit"
                         disabled={isPending}
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                          height="24px"
-                          viewBox="0 -960 960 960"
-                          width="24px"
-                          fill="#1f1f1f"
-                        >
-                          <path d="M200-200h57l391-391-57-57-391 391v57Zm-40 80q-17 0-28.5-11.5T120-160v-97q0-16 6-30.5t17-25.5l505-504q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L313-143q-11 11-25.5 17t-30.5 6h-97Zm600-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
-                        </svg>
+                        <Edit2 color={MESSAGE_BUTTON_COLOR} />
                       </button>
                     </div>
                   </div>
@@ -990,12 +881,7 @@ export default function ChatMain({ className, conversationId }: Props) {
 
               if (message.role === "assistant") {
                 return (
-                  <div
-                    key={id}
-                    // style={{ alignSelf: "flex-start" }}
-                    className={styles.markdownBody}
-                    // className="markdown-body"
-                  >
+                  <div key={id} className={styles.markdownBody}>
                     <Markdown>{message.content}</Markdown>
                     {stoppedMessageId === id && (
                       <div className={styles.stoppedNotice}>
@@ -1009,24 +895,16 @@ export default function ChatMain({ className, conversationId }: Props) {
                         </button>
                       </div>
                     )}
-                    <div className="assistant-msg-btn-group">
+                    {/* Button group */}
+                    <div className={styles.messageButtonGroup}>
+                      {/* Copy */}
                       <button
                         onClick={() => handleCopy(message.content)}
                         type="button"
-                        className="sender-msg-btn"
                         aria-label="Copy message"
                         data-tooltip="Copy"
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                          height="24px"
-                          viewBox="0 -960 960 960"
-                          width="24px"
-                          fill="#1f1f1f"
-                        >
-                          <path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-520q0-17 11.5-28.5T160-720q17 0 28.5 11.5T200-680v520h400q17 0 28.5 11.5T640-120q0 17-11.5 28.5T600-80H200Zm160-240v-480 480Z" />
-                        </svg>
+                        <Copy3 color={MESSAGE_BUTTON_COLOR} />
                       </button>
                       {/* Rating up */}
                       <button
@@ -1035,33 +913,14 @@ export default function ChatMain({ className, conversationId }: Props) {
                         }}
                         disabled={!messageId}
                         type="button"
-                        className="sender-msg-btn"
                         aria-label="Rate response positively"
                         data-tooltip="Good response"
                         aria-pressed={message.rating === "up"}
                       >
                         {message?.rating === "up" ? (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                            height="24px"
-                            viewBox="0 -960 960 960"
-                            width="24px"
-                            fill="#1f1f1f"
-                          >
-                            <path d="M840-640q32 0 56 24t24 56v80q0 7-1.5 15t-4.5 15L794-168q-9 20-30 34t-44 14H400q-33 0-56.5-23.5T320-200v-407q0-16 6.5-30.5T344-663l217-216q15-14 35.5-17t39.5 7q19 10 27.5 28t3.5 37l-45 184h218ZM160-120q-33 0-56.5-23.5T80-200v-360q0-33 23.5-56.5T160-640q33 0 56.5 23.5T240-560v360q0 33-23.5 56.5T160-120Z" />
-                          </svg>
+                          <ThumbsUp weight="Filled" color="black" />
                         ) : (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                            height="24px"
-                            viewBox="0 -960 960 960"
-                            width="24px"
-                            fill="#1f1f1f"
-                          >
-                            <path d="M840-640q32 0 56 24t24 56v80q0 7-2 15t-4 15L794-168q-9 20-30 34t-44 14H280v-520l240-238q15-15 35.5-17.5T595-888q19 10 28 28t4 37l-45 183h258Zm-480 34v406h360l120-280v-80H480l54-220-174 174ZM160-120q-33 0-56.5-23.5T80-200v-360q0-33 23.5-56.5T160-640h120v80H160v360h120v80H160Zm200-80v-406 406Z" />
-                          </svg>
+                          <ThumbsUp color={MESSAGE_BUTTON_COLOR} />
                         )}
                       </button>
                       {/* Rating down */}
@@ -1071,53 +930,16 @@ export default function ChatMain({ className, conversationId }: Props) {
                         }}
                         disabled={!messageId}
                         type="button"
-                        className="sender-msg-btn"
                         aria-label="Rate response negatively"
                         data-tooltip="Bad response"
                         aria-pressed={message.rating === "down"}
                       >
                         {message?.rating === "down" ? (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                            height="24px"
-                            viewBox="0 -960 960 960"
-                            width="24px"
-                            fill="#1f1f1f"
-                          >
-                            <path d="M120-320q-32 0-56-24t-24-56v-80q0-7 1.5-15t4.5-15l120-282q9-20 30-34t44-14h320q33 0 56.5 23.5T640-760v407q0 16-6.5 30.5T616-297L399-81q-15 14-35.5 17T324-71q-19-10-27.5-28t-3.5-37l45-184H120Zm680-520q33 0 56.5 23.5T880-760v360q0 33-23.5 56.5T800-320q-33 0-56.5-23.5T720-400v-360q0-33 23.5-56.5T800-840Z" />
-                          </svg>
+                          <ThumbsDown weight="Filled" color="black" />
                         ) : (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                            height="24px"
-                            viewBox="0 -960 960 960"
-                            width="24px"
-                            fill="#1f1f1f"
-                          >
-                            <path d="M120-320q-32 0-56-24t-24-56v-80q0-7 2-15t4-15l120-282q9-20 30-34t44-14h440v520L440-82q-15 15-35.5 17.5T365-72q-19-10-28-28t-4-37l45-183H120Zm480-34v-406H240L120-480v80h360l-54 220 174-174Zm200-486q33 0 56.5 23.5T880-760v360q0 33-23.5 56.5T800-320H680v-80h120v-360H680v-80h120Zm-200 80v406-406Z" />
-                          </svg>
+                          <ThumbsDown color={MESSAGE_BUTTON_COLOR} />
                         )}
                       </button>
-                      {/* <button
-                      onClick={() => {
-                        if (messageId) handleRegenerateMessage(messageId);
-                      }}
-                      disabled={!messageId}
-                      type="button"
-                      className="sender-msg-btn"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        height="24px"
-                        viewBox="0 -960 960 960"
-                        width="24px"
-                        fill="#1f1f1f"
-                      >
-                        <path d="M240-478q0 16 2 31.5t7 30.5q5 17-1 32.5T227-361q-16 8-31.5 1.5T175-383q-8-23-11.5-47t-3.5-48q0-134 93-228t227-94h7l-36-36q-11-11-11-28t11-28q11-11 28-11t28 11l104 104q12 12 12 28t-12 28L507-628q-11 11-28 11t-28-11q-11-11-11-28t11-28l36-36h-7q-100 0-170 70.5T240-478Zm480-4q0-16-2-31.5t-7-30.5q-5-17 1-32.5t21-22.5q16-8 31.5-1.5T785-577q8 23 11.5 47t3.5 48q0 134-93 228t-227 94h-7l36 36q11 11 11 28t-11 28q-11 11-28 11t-28-11L349-172q-12-12-12-28t12-28l104-104q11-11 28-11t28 11q11 11 11 28t-11 28l-36 36h7q100 0 170-70.5T720-482Z" />
-                      </svg>
-                    </button> */}
                     </div>
                   </div>
                 );
@@ -1155,50 +977,6 @@ export default function ChatMain({ className, conversationId }: Props) {
         )}
 
         <form className="input-wrapper" onSubmit={handleSendMessage}>
-          <input
-            ref={fileInputRef}
-            className={styles.fileInput}
-            type="file"
-            accept="image/png,image/jpeg,image/gif,image/webp,.txt,.md,.csv,.json,.xml,.html,.css,.js,.jsx,.ts,.tsx,.py,.java,.c,.cpp,.h,.sh,.yaml,.yml,.toml,.log,.sql"
-            multiple
-            onChange={handleAttachmentSelection}
-            aria-label="Attach images or text files"
-          />
-
-          {selectedAttachments.length > 0 && (
-            <div className={styles.attachmentList}>
-              {selectedAttachments.map(({ id, file, previewUrl }) => (
-                <div className={styles.attachmentItem} key={id}>
-                  {previewUrl ? (
-                    <Image
-                      src={previewUrl}
-                      alt=""
-                      width={34}
-                      height={34}
-                      unoptimized
-                    />
-                  ) : (
-                    <span className={styles.fileBadge} aria-hidden="true">
-                      TXT
-                    </span>
-                  )}
-                  <span className={styles.attachmentName} title={file.name}>
-                    {file.name}
-                  </span>
-                  <button
-                    type="button"
-                    className={styles.removeAttachment}
-                    onClick={() => removeAttachment(id)}
-                    aria-label={`Remove ${file.name}`}
-                    disabled={isPending}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
           <textarea
             id="chat"
             className="input"
@@ -1224,14 +1002,17 @@ export default function ChatMain({ className, conversationId }: Props) {
             <button
               type="button"
               className={styles.attachButton}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => console.log("File input pressed!")}
               aria-label="Attach images or text files"
               title="Attach images or text files"
               disabled={isPending}
             >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
+              {/* <Paperclip /> */}
+
+              <Paperclip />
+              {/* <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="m21.4 11.1-8.5 8.5a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5" />
-              </svg>
+              </svg> */}
             </button>
 
             {attachmentError && (
@@ -1248,9 +1029,11 @@ export default function ChatMain({ className, conversationId }: Props) {
                 title="Stop generating"
                 onClick={stopStreaming}
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
+                {/* <svg viewBox="0 0 24 24" aria-hidden="true">
                   <rect x="7" y="7" width="10" height="10" rx="1" />
-                </svg>
+                </svg> */}
+
+                <Stop size={24} weight="Filled" />
               </button>
             ) : (
               <button
@@ -1259,9 +1042,11 @@ export default function ChatMain({ className, conversationId }: Props) {
                 disabled={isInputEmpty}
                 aria-label="Send message"
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
+                {/* <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M12 19V5m-6 6 6-6 6 6" />
-                </svg>
+                </svg> */}
+
+                <ArrowUp />
               </button>
             )}
           </div>

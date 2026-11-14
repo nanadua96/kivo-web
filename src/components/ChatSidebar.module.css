@@ -1,9 +1,8 @@
 .logo {
   font-size: var(--20px);
   font-weight: 700;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: "Inter", system-ui, sans-serif;
   text-transform: uppercase;
-  padding-top: 16px;
   color: #171717;
   text-decoration: none;
   padding: var(--8px);
@@ -18,12 +17,12 @@
 
 .newChatButton {
   background-color: white;
-  padding: 6px 16px;
+  padding: var(--6px) var(--16px);
   text-align: center;
   border-radius: 0.625rem;
   transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
-  font-size: 14px;
+  font-size: var(--14px);
   border: 1px solid #e5e5e5;
 
   &:hover {
@@ -36,9 +35,8 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  /* flex-grow: 1; */
   justify-content: space-between;
-  height: 40px;
+  height: var(--40px);
   gap: var(--8px);
   padding: var(--8px);
   border-radius: var(--8px);
@@ -49,7 +47,7 @@
   }
 
   &.selected {
-    background-color: whitesmoke !important;
+    background-color: whitesmoke;
   }
 }
 
@@ -65,6 +63,11 @@
 /* .conversationItem.selected {
   background-color: whitesmoke !important;
 } */
+
+.sidebarRow2 {
+  display: flex;
+  flex-direction: column;
+}
 
 .conversationItemButtonGroup {
   display: none;
@@ -571,7 +574,7 @@
 
 .sidebar {
   position: relative;
-  width: 260px;
+  width: var(--sidebar-width);
   height: 100%;
   z-index: 1001;
   display: flex;
@@ -581,6 +584,7 @@
   flex-shrink: 0;
   background: #fff;
   overflow: visible;
+  padding-inline: var(--8px);
   transition:
     transform 300ms ease-in-out,
     opacity 300ms ease-in-out;
