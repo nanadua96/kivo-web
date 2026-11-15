@@ -11,6 +11,7 @@ import {
 import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
+import { Copy } from "@/ui";
 import styles from "./Markdown.module.css";
 
 type MarkdownProps = {
@@ -67,14 +68,7 @@ function CodeBlock({ children }: { children: ReactNode }) {
           onClick={copyCode}
           aria-label={copyStatus === "Copied" ? "Code copied" : "Copy code"}
         >
-          <svg
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            className={styles.copyIcon}
-          >
-            <rect x="8" y="8" width="12" height="12" rx="2" />
-            <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
-          </svg>
+          <Copy />
           <span>{copyStatus}</span>
         </button>
       </div>

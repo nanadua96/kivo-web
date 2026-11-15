@@ -98,7 +98,7 @@ h6 {
   --radius-large: calc(999rem / 16);
   --user-message-radius: var(--24px);
 
-  @media (prefers-color-scheme: dark) {
+  /* @media (prefers-color-scheme: dark) {
     --background-primary: #1e1d1d;
     --content-primary: #e6e5e3;
     --content-primary-subtle: #7d7d7b;
@@ -106,7 +106,7 @@ h6 {
     --conversation-item-selected-hover: #e3e1de;
     --user-message-background: #edebe8;
     --icon-button: #edebe8;
-  }
+  } */
 }
 
 body {

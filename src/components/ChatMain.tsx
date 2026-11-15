@@ -1,10 +1,8 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { PanelLeft, Paperclip } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, Stop, ThumbsDown, ThumbsUp } from "reicon-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useSidebar } from "@/store";
@@ -15,11 +13,13 @@ import {
   Attach,
   Copy,
   Edit,
+  PanelLeftDefault,
+  StopFilled,
   ThumbDislike,
   ThumbDislikeFilled,
   ThumbLike,
   ThumbLikeFilled,
-} from "../ui/Icons";
+} from "../ui";
 import styles from "./ChatMain.module.css";
 import Markdown, { ThinkingIndicator } from "./Markdown";
 
@@ -72,12 +72,15 @@ async function throwResponseError(response: Response): Promise<never> {
 
   try {
     const parsedBody: unknown = JSON.parse(responseBody);
+
     if (parsedBody && typeof parsedBody === "object") {
       const body = parsedBody as Record<string, unknown>;
+
       const nestedError =
         body.error && typeof body.error === "object"
           ? (body.error as Record<string, unknown>).message
           : body.error;
+
       const message = body.message ?? nestedError;
       if (typeof message === "string") detail = message;
     }
@@ -700,7 +703,7 @@ export default function ChatMain({ className, conversationId }: Props) {
             aria-label="Open sidebar"
             aria-expanded={expanded}
           >
-            <PanelLeft />
+            <PanelLeftDefault />
           </button>
         )}
       </nav>
@@ -945,11 +948,7 @@ export default function ChatMain({ className, conversationId }: Props) {
                 title="Stop generating"
                 onClick={stopStreaming}
               >
-                {/* <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <rect x="7" y="7" width="10" height="10" rx="1" />
-                </svg> */}
-
-                <Stop size={24} weight="Filled" />
+                <StopFilled />
               </button>
             ) : (
               <button
@@ -958,10 +957,6 @@ export default function ChatMain({ className, conversationId }: Props) {
                 disabled={isInputEmpty}
                 aria-label="Send message"
               >
-                {/* <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 19V5m-6 6 6-6 6 6" />
-                </svg> */}
-
                 <ArrowUpFilled />
               </button>
             )}

@@ -1,29 +1,8 @@
 import type { Metadata } from "next";
-import {
-  Archivo,
-  Figtree,
-  Google_Sans_Code,
-  Hubot_Sans,
-  Inter_Tight,
-  Mona_Sans,
-  Roboto_Mono,
-} from "next/font/google";
-// import { Inter_Tight } from "next/font/google";
+import { Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import localFont from "next/font/local";
 import { Providers } from "./providers";
-
-const fontPrimary = Figtree({
-  variable: "--font-primary",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-// const fontPrimary = Archivo({
-//   variable: "--font-primary",
-//   subsets: ["latin"],
-//   display: "swap",
-// });
 
 const fontMono = Roboto_Mono({
   variable: "--font-mono",
@@ -31,10 +10,10 @@ const fontMono = Roboto_Mono({
   display: "swap",
 });
 
-// const fontPrimary = localFont({
-//   variable: "--font-primary",
-//   src: "../HarmonyOS_Sans_Regular.ttf",
-// });
+const fontPrimary = localFont({
+  variable: "--font-primary",
+  src: "../fonts/HarmonyOS_Sans/HarmonyOS_Sans_Regular.ttf",
+});
 
 export const metadata: Metadata = {
   title: "Kivo: Your AI Assistant for Chat, Work & Code",
