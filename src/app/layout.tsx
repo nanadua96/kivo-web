@@ -13,17 +13,11 @@ import "./globals.css";
 import localFont from "next/font/local";
 import { Providers } from "./providers";
 
-// const fontPrimary = Inter_Tight({
-//   variable: "--font-primary",
-//   subsets: ["latin"],
-//   display: "swap",
-// });
-
-// const fontPrimary = Figtree({
-//   variable: "--font-primary",
-//   subsets: ["latin"],
-//   display: "swap",
-// });
+const fontPrimary = Figtree({
+  variable: "--font-primary",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 // const fontPrimary = Archivo({
 //   variable: "--font-primary",
@@ -39,13 +33,8 @@ const fontMono = Roboto_Mono({
 
 // const fontPrimary = localFont({
 //   variable: "--font-primary",
-//   src: "../TiemposHeadline-Regular.otf",
+//   src: "../HarmonyOS_Sans_Regular.ttf",
 // });
-
-const fontPrimary = localFont({
-  variable: "--font-primary",
-  src: "../HarmonyOS_Sans_Regular.ttf",
-});
 
 export const metadata: Metadata = {
   title: "Kivo: Your AI Assistant for Chat, Work & Code",
