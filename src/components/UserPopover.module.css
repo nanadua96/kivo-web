@@ -30,21 +30,6 @@
   }
 }
 
-.avatar {
-  display: inline-flex;
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: #e8ecff;
-  color: #3154c8;
-  font-size: 14px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
 .email {
   min-width: 0;
   flex: 1;

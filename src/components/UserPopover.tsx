@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Gear, Logout3 } from "reicon-react";
 import { authClient } from "@/lib/auth-client";
+import Avatar from "@/ui/Avatar";
 import styles from "./UserPopover.module.css";
 
 export function UserPopover() {
@@ -14,7 +15,7 @@ export function UserPopover() {
   const rootRef = useRef<HTMLDivElement>(null);
 
   const email = session?.user.email ?? "Guest";
-  const avatar = session?.user.name?.trim().charAt(0) || email.charAt(0) || "G";
+  const name = session?.user.name?.trim();
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -72,17 +73,14 @@ export function UserPopover() {
           setIsOpen((open) => !open);
         }}
       >
-        <span className={styles.avatar} aria-hidden="true">
-          {avatar.toUpperCase()}
-        </span>
-        <span className={styles.email} title={email}>
-          {isPending ? "Loading account..." : email}
+        <Avatar name={name || email} size="sm" />
+        <span className={styles.email} title={name || email}>
+          {isPending ? "Loading account..." : name || email}
         </span>
       </button>
 
       {isOpen && (
         <div className={styles.menu} role="menu" aria-label="Account options">
-          {/* <div className={styles.menuAccount}></div> */}
           <Link
             href="/settings"
             className={styles.menuItem}
@@ -97,7 +95,7 @@ export function UserPopover() {
             type="button"
             className={styles.menuItem}
             role="menuitem"
-            onClick={() => void handleSignOut()}
+            onClick={() => handleSignOut()}
             disabled={isSigningOut || !session}
           >
             <Logout3 />

@@ -54,75 +54,15 @@
   gap: 18px;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.field label {
-  color: #303030;
-  font-size: 13px;
-  font-weight: 550;
-}
-
-.field input {
-  width: 100%;
-  height: 48px;
-  padding: 0 13px;
-  border: 1px solid #dedede;
-  border-radius: 9px;
-  outline: none;
-  background: #fff;
-  color: #171717;
-  font: inherit;
-  font-size: 14px;
-  transition:
-    border-color 150ms ease,
-    box-shadow 150ms ease;
-}
-
-.field input::placeholder {
-  color: #a0a0a0;
-}
-
-.field input:focus {
-  border-color: #777;
-  box-shadow: 0 0 0 3px rgb(0 0 0 / 6%);
-}
-
-.field input[aria-invalid="true"] {
-  border-color: #c62828;
-}
-
-.field input.otpInput {
-  height: 56px;
-  font-size: 24px;
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  letter-spacing: 12px;
-  text-align: center;
-}
-
-.fieldError,
 .error,
-.notice {
+.accountPrompt {
   font-size: 13px;
   line-height: 1.5;
 }
 
-.fieldError,
 .error {
   color: #b42318;
-}
-
-.error {
   margin: -4px 0 0;
-}
-
-.notice {
-  margin: -4px 0 0;
-  color: #287a45;
 }
 
 .submitButton {
@@ -147,32 +87,59 @@
   opacity: 0.65;
 }
 
-.email {
-  display: block;
-  margin-top: 4px;
-  color: #303030;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.actions {
+.separator {
   display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: #929292;
+  font-size: 12px;
+}
+
+.separator::before,
+.separator::after {
+  height: 1px;
+  flex: 1;
+  background: #e8e8e8;
+  content: "";
+}
+
+.demoButton {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 20px;
-  color: #858585;
-  font-size: 13px;
+  width: 100%;
+  border: 1px solid #dedede;
+  border-radius: 9px;
+  color: #171717;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
 }
 
-.actions button {
-  color: #454545;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.demoButton:hover:not(:disabled) {
+  border-color: #c5c5c5;
+  background: #fafafa;
 }
 
-.actions button:disabled {
+.demoButton:disabled {
   cursor: wait;
   opacity: 0.6;
+}
+
+.accountPrompt {
+  margin-top: 22px;
+  color: #707070;
+  text-align: center;
+}
+
+.accountPrompt a {
+  color: #171717;
+  font-weight: 600;
+  text-underline-offset: 3px;
 }
 
 .terms {
@@ -203,8 +170,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .field input,
-  .submitButton {
+  .submitButton,
+  .demoButton {
     transition: none;
   }
 }

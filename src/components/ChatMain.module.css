@@ -105,6 +105,7 @@
   display: flex;
   gap: var(--10px);
   height: var(--64px);
+  padding-inline: var(--16px);
 }
 
 .hamburgerButton {

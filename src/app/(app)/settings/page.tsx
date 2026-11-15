@@ -2,15 +2,19 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import Button from "@/components/Button";
+import IconButton from "@/components/IconButton";
+import { Icon } from "@/components/Icons";
+import Input from "@/components/Input";
 import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 import { useSidebar } from "@/store";
-import styles from "./settings.module.css";
+import Avatar from "@/ui/Avatar";
+import styles from "./page.module.css";
 
 const nameSchema = z.object({
   name: z
@@ -55,7 +59,7 @@ export default function SettingsPage() {
 
   const isBusy = isSavingName || isDeletingAccount || isDeletingChats;
   const email = session?.user.email ?? "";
-  const avatar = session?.user.name?.trim().charAt(0) || email.charAt(0) || "?";
+  const displayName = session?.user.name?.trim() || "";
 
   async function saveName(values: NameForm) {
     setActionError("");
@@ -85,6 +89,7 @@ export default function SettingsPage() {
 
     try {
       const result = await authClient.deleteUser({});
+
       if (result.error) {
         throw new Error(
           result.error.message ?? "Could not delete your account.",
@@ -92,6 +97,7 @@ export default function SettingsPage() {
       }
 
       const signOutResult = await authClient.signOut();
+
       if (signOutResult.error) {
         throw new Error(
           signOutResult.error.message ??
@@ -119,7 +125,7 @@ export default function SettingsPage() {
     setIsDeletingChats(true);
 
     try {
-      await api.delete("/api/v1/conversations");
+      await api.delete("/api/v1/conversations/delete/all");
       await queryClient.invalidateQueries({ queryKey: ["conversations"] });
       setActionMessage("All conversations have been deleted.");
     } catch (error) {
@@ -138,19 +144,16 @@ export default function SettingsPage() {
     <main className={styles.workspace}>
       <header className={styles.header}>
         {!expanded && (
-          <button
+          <IconButton
+            variant="outline"
             type="button"
-            className={styles.sidebarToggle}
             aria-label="Open sidebar"
             onClick={toggleSidebar}
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+            <Icon name="ic_fluent_panel_left_default_28_regular" />
+          </IconButton>
         )}
         <div>
-          <p className={styles.eyebrow}>Preferences</p>
           <h1>Settings</h1>
         </div>
       </header>
@@ -168,9 +171,7 @@ export default function SettingsPage() {
             </div>
 
             <div className={styles.profile}>
-              <span className={styles.avatar} aria-hidden="true">
-                {avatar.toUpperCase()}
-              </span>
+              <Avatar name={displayName || email} size="lg" />
               <div className={styles.profileInfo}>
                 <strong>
                   {email ||
@@ -182,44 +183,37 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className={styles.field}>
-              <label htmlFor="settings-name">Name</label>
-              <input
-                id="settings-name"
-                autoComplete="name"
-                maxLength={80}
-                disabled={!session || isSavingName}
-                aria-invalid={Boolean(errors.name)}
-                aria-describedby={
-                  errors.name ? "settings-name-error" : "settings-name-help"
-                }
-                {...register("name")}
-              />
-              {errors.name ? (
-                <span
-                  className={styles.error}
-                  id="settings-name-error"
-                  role="alert"
-                >
-                  {errors.name.message}
-                </span>
-              ) : (
-                <span className={styles.helper} id="settings-name-help">
-                  This name appears on your account. Use up to 80 characters.
-                </span>
-              )}
-            </div>
-
-            <div className={styles.formActions}>
-              <button
+            <div className={styles.nameFieldRow}>
+              <div className={styles.nameField}>
+                <Input
+                  label="Name"
+                  id="settings-name"
+                  autoComplete="name"
+                  maxLength={80}
+                  disabled={!session || isSavingName}
+                  aria-describedby={
+                    errors.name ? undefined : "settings-name-help"
+                  }
+                  {...register("name")}
+                  error={errors.name?.message}
+                />
+                {!errors.name && (
+                  <span className={styles.helper} id="settings-name-help">
+                    This name appears on your account. Use up to 80 characters.
+                  </span>
+                )}
+              </div>
+              <Button
                 type="submit"
-                className={styles.primaryButton}
+                variant="solid"
+                className={styles.saveButton}
+                loading={isSavingName}
                 disabled={
                   !session || !isDirty || isSavingName || isSessionPending
                 }
               >
-                {isSavingName ? "Saving..." : "Save changes"}
-              </button>
+                Save changes
+              </Button>
             </div>
           </section>
 
@@ -279,12 +273,6 @@ export default function SettingsPage() {
             )}
           </section>
         </form>
-
-        <footer className={styles.footer}>
-          <span>About Kivo</span>
-          <Link href="/terms">Terms of Service</Link>
-          <Link href="/privacy">Privacy Policy</Link>
-        </footer>
       </div>
 
       {confirmAction && (
@@ -311,14 +299,14 @@ export default function SettingsPage() {
               </p>
             )}
             <div className={styles.confirmActions}>
-              <button
+              <Button
                 type="button"
-                className={styles.secondaryButton}
+                variant="outline"
                 disabled={isBusy}
                 onClick={() => setConfirmAction(null)}
               >
                 Cancel
-              </button>
+              </Button>
               <button
                 type="button"
                 className={styles.dangerButton}

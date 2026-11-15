@@ -6,25 +6,20 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import Input from "@/components/Input";
 import { authClient } from "@/lib/auth-client";
 import styles from "./sign-in.module.css";
 
-const emailSchema = z.object({
-  email: z.email({
-    pattern:
-      /^(?!\.)(?!.*\.\.)([a-z0-9_'+\-.]*)[a-z0-9_+-]@([a-z0-9][a-z0-9-]*\.)+[a-z]{2,}$/i,
-  }),
-});
-
-const otpSchema = z.object({
-  otp: z
+const signInSchema = z.object({
+  email: z.email("Enter a valid email address"),
+  password: z
     .string()
-    .length(6, "Enter the 6-digit verification code")
-    .regex(/^\d{6}$/, "The code must contain only numbers"),
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[0-9]/, "Password must include at least one number")
+    .regex(/[^A-Za-z0-9\s]/, "Password must include at least one symbol"),
 });
 
-type EmailValues = z.infer<typeof emailSchema>;
-type OtpValues = z.infer<typeof otpSchema>;
+type SignInValues = z.infer<typeof signInSchema>;
 
 type SignInFormProps = {
   callbackUrl?: string;
@@ -32,121 +27,89 @@ type SignInFormProps = {
 
 export default function SignInForm({ callbackUrl }: SignInFormProps) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-
-  const emailForm = useForm<EmailValues>({
-    resolver: zodResolver(emailSchema),
-    defaultValues: { email: "" },
-  });
-  const otpForm = useForm<OtpValues>({
-    resolver: zodResolver(otpSchema),
-    defaultValues: { otp: "" },
+  const [isDemoSubmitting, setIsDemoSubmitting] = useState(false);
+  const form = useForm<SignInValues>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: { email: "", password: "" },
   });
 
-  async function sendCode(address: string) {
-    const response = await authClient.emailOtp.sendVerificationOtp({
-      email: address,
-      type: "sign-in",
-    });
-
-    if (response.error) {
-      throw new Error(response.error.message ?? "Could not send your code.");
-    }
-    if (!response.data?.success) {
-      throw new Error("Could not send your code. Please try again.");
-    }
+  function redirectAfterSignIn() {
+    const requestedDestination =
+      callbackUrl?.startsWith("/") &&
+      !callbackUrl.startsWith("//") &&
+      !callbackUrl.includes("\\")
+        ? new URL(callbackUrl, window.location.origin)
+        : null;
+    const destination =
+      requestedDestination?.origin === window.location.origin &&
+      requestedDestination.pathname !== "/sign-in" &&
+      requestedDestination.pathname !== "/sign-up"
+        ? `${requestedDestination.pathname}${requestedDestination.search}${requestedDestination.hash}`
+        : "/";
+    router.replace(destination);
+    router.refresh();
   }
 
-  async function handleEmailSubmit(values: EmailValues) {
-    setError("");
-    setNotice("");
-
-    try {
-      const normalizedEmail = values.email.trim();
-      await sendCode(normalizedEmail);
-      setEmail(normalizedEmail);
-      otpForm.reset();
-      setIsVerifying(true);
-    } catch (sendError) {
-      setError(
-        sendError instanceof Error
-          ? sendError.message
-          : "Could not send your code. Please try again.",
-      );
-    }
-  }
-
-  async function handleOtpSubmit(values: OtpValues) {
+  async function handleSubmit(values: SignInValues) {
     setError("");
 
     try {
-      const response = await authClient.signIn.emailOtp({
-        email,
-        otp: values.otp,
+      const response = await authClient.signIn.email({
+        email: values.email.trim(),
+        password: values.password,
       });
 
       if (response.error) {
-        throw new Error(
-          response.error.message ?? "Could not verify your code.",
-        );
+        throw new Error(response.error.message ?? "Could not sign in.");
       }
       if (!response.data?.user) {
-        throw new Error("Could not verify your code. Please try again.");
+        throw new Error("Could not sign in. Please try again.");
       }
 
-      const requestedDestination =
-        callbackUrl?.startsWith("/") &&
-        !callbackUrl.startsWith("//") &&
-        !callbackUrl.includes("\\")
-          ? new URL(callbackUrl, window.location.origin)
-          : null;
-      const destination =
-        requestedDestination?.origin === window.location.origin &&
-        requestedDestination.pathname !== "/sign-in"
-          ? `${requestedDestination.pathname}${requestedDestination.search}${requestedDestination.hash}`
-          : "/";
-      router.replace(destination);
-      router.refresh();
-    } catch (verifyError) {
+      redirectAfterSignIn();
+    } catch (signInError) {
       setError(
-        verifyError instanceof Error
-          ? verifyError.message
-          : "Could not verify your code. Please try again.",
+        signInError instanceof Error
+          ? signInError.message
+          : "Could not sign in. Please try again.",
       );
     }
   }
 
-  async function handleResend() {
-    if (isResending) return;
+  async function handleDemoSignIn() {
+    if (isDemoSubmitting || form.formState.isSubmitting) return;
 
     setError("");
-    setNotice("");
-    setIsResending(true);
+    setIsDemoSubmitting(true);
 
     try {
-      await sendCode(email);
-      otpForm.reset();
-      setNotice("A new code has been sent to your inbox.");
-    } catch (sendError) {
+      const email = process.env.NEXT_PUBLIC_DEMO_EMAIL;
+      const password = process.env.NEXT_PUBLIC_DEMO_PASSWORD;
+      if (!email || !password) {
+        throw new Error(
+          "The demo account is not configured. Set NEXT_PUBLIC_DEMO_EMAIL and NEXT_PUBLIC_DEMO_PASSWORD.",
+        );
+      }
+
+      const response = await authClient.signIn.email({ email, password });
+      if (response.error) {
+        throw new Error(response.error.message ?? "Could not sign in to demo.");
+      }
+      if (!response.data?.user) {
+        throw new Error("Could not sign in to demo. Please try again.");
+      }
+
+      redirectAfterSignIn();
+    } catch (signInError) {
       setError(
-        sendError instanceof Error
-          ? sendError.message
-          : "Could not send a new code. Please try again.",
+        signInError instanceof Error
+          ? signInError.message
+          : "Could not sign in to demo. Please try again.",
       );
     } finally {
-      setIsResending(false);
+      setIsDemoSubmitting(false);
     }
-  }
-
-  function handleChangeEmail() {
-    setError("");
-    setNotice("");
-    setIsVerifying(false);
-    otpForm.reset();
   }
 
   return (
@@ -156,144 +119,67 @@ export default function SignInForm({ callbackUrl }: SignInFormProps) {
           kivo
         </Link>
 
-        {!isVerifying ? (
-          <>
-            <header className={styles.heading}>
-              <h1 id="sign-in-title">Welcome to Kivo</h1>
-              <p>Sign in or create an account with your email.</p>
-            </header>
+        <header className={styles.heading}>
+          <h1 id="sign-in-title">Welcome to Kivo</h1>
+          <p>Sign in to continue to your account.</p>
+        </header>
 
-            <form
-              className={styles.form}
-              onSubmit={emailForm.handleSubmit(handleEmailSubmit)}
-              noValidate
-            >
-              <div className={styles.field}>
-                <label htmlFor="sign-in-email">Email address</label>
-                <input
-                  id="sign-in-email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                  aria-invalid={Boolean(emailForm.formState.errors.email)}
-                  aria-describedby={
-                    emailForm.formState.errors.email
-                      ? "sign-in-email-error"
-                      : undefined
-                  }
-                  {...emailForm.register("email")}
-                />
-                {emailForm.formState.errors.email && (
-                  <span className={styles.fieldError} id="sign-in-email-error">
-                    {emailForm.formState.errors.email.message}
-                  </span>
-                )}
-              </div>
+        <form
+          className={styles.form}
+          onSubmit={form.handleSubmit(handleSubmit)}
+          noValidate
+        >
+          <Input
+            label="Email address"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            {...form.register("email")}
+            error={form.formState.errors.email?.message}
+          />
+          <Input
+            label="Password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="Enter your password"
+            {...form.register("password")}
+            error={form.formState.errors.password?.message}
+          />
 
-              {error && (
-                <p className={styles.error} role="alert">
-                  {error}
-                </p>
-              )}
+          {error && (
+            <p className={styles.error} role="alert">
+              {error}
+            </p>
+          )}
 
-              <button
-                className={styles.submitButton}
-                type="submit"
-                disabled={emailForm.formState.isSubmitting}
-              >
-                {emailForm.formState.isSubmitting
-                  ? "Sending code..."
-                  : "Continue with email"}
-              </button>
-            </form>
-          </>
-        ) : (
-          <>
-            <header className={styles.heading}>
-              <h1 id="sign-in-title">Check your email</h1>
-              <p>
-                Enter the 6-digit code we sent to
-                <strong className={styles.email}>{email}</strong>
-              </p>
-            </header>
+          <button
+            className={styles.submitButton}
+            type="submit"
+            disabled={form.formState.isSubmitting || isDemoSubmitting}
+          >
+            {form.formState.isSubmitting ? "Signing in..." : "Sign in"}
+          </button>
+        </form>
 
-            <form
-              className={styles.form}
-              onSubmit={otpForm.handleSubmit(handleOtpSubmit)}
-              noValidate
-            >
-              <div className={styles.field}>
-                <label htmlFor="sign-in-otp">Verification code</label>
-                <input
-                  id="sign-in-otp"
-                  className={styles.otpInput}
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  placeholder="000000"
-                  aria-invalid={Boolean(otpForm.formState.errors.otp)}
-                  aria-describedby={
-                    otpForm.formState.errors.otp
-                      ? "sign-in-otp-error"
-                      : undefined
-                  }
-                  {...otpForm.register("otp", {
-                    onChange: (event) => {
-                      const value = event.target.value
-                        .replace(/\D/g, "")
-                        .slice(0, 6);
-                      event.target.value = value;
-                      otpForm.setValue("otp", value, {
-                        shouldValidate: true,
-                        shouldDirty: true,
-                      });
-                    },
-                  })}
-                />
-                {otpForm.formState.errors.otp && (
-                  <span className={styles.fieldError} id="sign-in-otp-error">
-                    {otpForm.formState.errors.otp.message}
-                  </span>
-                )}
-              </div>
+        <div className={styles.separator}>
+          <span>or</span>
+        </div>
 
-              {error && (
-                <p className={styles.error} role="alert">
-                  {error}
-                </p>
-              )}
-              {notice && <output className={styles.notice}>{notice}</output>}
+        <button
+          className={styles.demoButton}
+          type="button"
+          onClick={handleDemoSignIn}
+          disabled={form.formState.isSubmitting || isDemoSubmitting}
+        >
+          {isDemoSubmitting ? "Opening demo..." : "Try the demo account"}
+        </button>
 
-              <button
-                className={styles.submitButton}
-                type="submit"
-                disabled={otpForm.formState.isSubmitting}
-              >
-                {otpForm.formState.isSubmitting ? "Verifying..." : "Verify"}
-              </button>
-            </form>
-
-            <div className={styles.actions}>
-              <button type="button" onClick={handleChangeEmail}>
-                Use a different email
-              </button>
-              <span aria-hidden="true">·</span>
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={isResending}
-              >
-                {isResending ? "Sending..." : "Resend code"}
-              </button>
-            </div>
-          </>
-        )}
+        <p className={styles.accountPrompt}>
+          Don&apos;t have an account? <Link href="/sign-up">Sign up</Link>
+        </p>
 
         <p className={styles.terms}>
-          By continuing, you agree to Kivo&apos;s{" "}
-          <Link href="/terms">Terms</Link> and{" "}
-          <Link href="/privacy">Privacy Policy</Link>.
+          By continuing, you agree to Kivo&apos;s terms and privacy policy.
         </p>
       </section>
     </div>

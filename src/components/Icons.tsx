@@ -1,17 +1,21 @@
-type IconNames = "ic_fluent_delete_24_regular" | "ic_fluent_copy_24_regular";
+type IconNames =
+  | "ic_fluent_delete_24_regular"
+  | "ic_fluent_copy_24_regular"
+  | "ic_fluent_panel_left_default_28_regular";
 
 type IconProps = {
   name: IconNames;
-  //   size: number;
+  size?: number;
   //   color: string;
+  filled?: boolean;
 };
 
-export function Icon({ name }: IconProps) {
+export function Icon({ name, size = 24 }: IconProps) {
   if (name === "ic_fluent_delete_24_regular")
     return (
       <svg
-        width="24"
-        height="24"
+        width={size}
+        height={size}
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -27,8 +31,8 @@ export function Icon({ name }: IconProps) {
   if (name === "ic_fluent_copy_24_regular")
     return (
       <svg
-        width="24"
-        height="24"
+        width={size}
+        height={size}
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -37,6 +41,23 @@ export function Icon({ name }: IconProps) {
         <path
           d="M8.5 8.5H6.25C5.2835 8.5 4.5 9.2835 4.5 10.25V17.75C4.5 18.7165 5.2835 19.5 6.25 19.5H11.25C12.1315 19.5 12.8591 18.8479 12.9805 18H14.4893C14.3616 19.6781 12.9608 21 11.25 21H6.25C4.45507 21 3 19.5449 3 17.75V10.25C3 8.45507 4.45507 7 6.25 7H8.5V8.5ZM17.75 3C19.5449 3 21 4.45507 21 6.25V13.75C21 15.5449 19.5449 17 17.75 17H12.75C10.9551 17 9.5 15.5449 9.5 13.75V6.25C9.5 4.45507 10.9551 3 12.75 3H17.75ZM12.75 4.5C11.7835 4.5 11 5.2835 11 6.25V13.75C11 14.7165 11.7835 15.5 12.75 15.5H17.75C18.7165 15.5 19.5 14.7165 19.5 13.75V6.25C19.5 5.2835 18.7165 4.5 17.75 4.5H12.75Z"
           fill="#212121"
+        />
+      </svg>
+    );
+
+  if (name === "ic_fluent_panel_left_default_28_regular")
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 28 28"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <title>ic_fluent_panel_left_default_28_regular</title>
+        <path
+          fill="#212121"
+          d="M22.25 4A3.75 3.75 0 0 1 26 7.75v12.5A3.75 3.75 0 0 1 22.25 24H5.75A3.75 3.75 0 0 1 2 20.25V7.75A3.75 3.75 0 0 1 5.75 4zM5.75 5.5c-1.24 0-2.25 1-2.25 2.25v12.5c0 1.24 1.01 2.25 2.25 2.25H9.5v-17zm5.25 0v17h11.25c1.24 0 2.25-1 2.25-2.25V7.75c0-1.24-1-2.25-2.25-2.25z"
         />
       </svg>
     );

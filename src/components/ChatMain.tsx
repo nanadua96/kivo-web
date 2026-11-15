@@ -718,7 +718,7 @@ export default function ChatMain({ className, conversationId }: Props) {
             aria-label="Open sidebar"
             aria-expanded={expanded}
           >
-            <PanelLeft />
+            <Icon name="ic_fluent_panel_left_default_28_regular" />
           </button>
         )}
       </nav>
