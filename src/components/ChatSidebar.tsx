@@ -1,26 +1,3 @@
-// 'use client';
-
-// import styles from './Sidebar.module.css';
-
-// export default function Sidebar() {
-//   return <div className={styles.test}></div>;
-// }
-
-// components/
-// ├── chat/
-// ChatContainer
-// │   ├── ChatWorkspace.tsx       # Parent: sidebar + main chat
-// │   ├── ChatSidebar.tsx         # Sidebar container
-// │   ├── ChatMain.tsx            # Main chat area
-// │   ├── ChatHeader.tsx          # Header / top navigation
-// │   ├── ChatMessages.tsx        # Message list
-// │   ├── ChatMessage.tsx         # Individual message
-// │   ├── ChatInput.tsx           # Prompt input
-// │   ├── ChatActions.tsx         # Regenerate, copy, etc.
-// │   ├── ConversationList.tsx    # List of previous chats
-// │   ├── ConversationItem.tsx    # Individual conversation
-// │   └── NewChatButton.tsx       # New chat button
-
 "use client";
 
 import {
@@ -30,7 +7,6 @@ import {
 } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PinTack, Sidebar2 } from "reicon-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useSidebar } from "@/store";
@@ -68,13 +44,13 @@ type Props = {
 };
 
 export default function ChatSidebar({ className }: Props) {
+  const queryKey = ["conversations"];
+
   const [conversationToRename, setConversationToRename] =
     useState<Conversation | null>(null);
 
   const [conversationToDelete, setConversationToDelete] =
     useState<Conversation | null>(null);
-
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const conversationListRef = useRef<HTMLElement>(null);
   const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
@@ -88,7 +64,7 @@ export default function ChatSidebar({ className }: Props) {
   const toggleSidebar = useSidebar((state) => state.toggleSidebar);
 
   const conversationQuery = useInfiniteQuery({
-    queryKey: ["conversations"],
+    queryKey,
     initialPageParam: 1,
     queryFn: async ({ pageParam }) => {
       const { data } = await api.get<ConversationPageResponse>(
@@ -138,8 +114,6 @@ export default function ChatSidebar({ className }: Props) {
     conversationQuery.isFetchNextPageError,
     conversationQuery.isFetchingNextPage,
   ]);
-
-  const queryKey = ["conversations"];
 
   const renameMutation = useMutation({
     mutationFn: async ({ id, newTitle }: { id: string; newTitle: string }) => {

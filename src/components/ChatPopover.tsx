@@ -3,7 +3,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import "./ChatPopover.css";
-import { Edit2, MoreH, Pen, PinTack, Trash5 } from "reicon-react";
 import { Delete, Edit, MoreHorizontalFilled, Pin, PinFilled } from "@/ui";
 
 type Props = {
