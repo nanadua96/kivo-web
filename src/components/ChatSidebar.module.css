@@ -19,11 +19,25 @@
   background-color: white;
   padding: var(--6px) var(--16px);
   text-align: center;
-  border-radius: 0.625rem;
+  border-radius: var(--12px);
   transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
   font-size: var(--14px);
   border: 1px solid #e5e5e5;
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+
+  & svg {
+    width: var(--18px);
+    height: var(--18px);
+    /* fill: #ff3c01; */
+
+    path {
+      fill: var(--accent);
+    }
+  }
 
   &:hover {
     background-color: #f5f5f5;

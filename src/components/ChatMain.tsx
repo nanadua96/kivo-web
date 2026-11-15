@@ -2,26 +2,25 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PanelLeft, Paperclip } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ArrowUp,
-  Copy3,
-  Edit2,
-  // Paperclip,
-  Sidebar2,
-  Stop,
-  ThumbsDown,
-  ThumbsUp,
-} from "reicon-react";
+import { ArrowUp, Stop, ThumbsDown, ThumbsUp } from "reicon-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useSidebar } from "@/store";
 import { useMessages } from "@/store/message.store";
 import type { Messages } from "@/types/message.types";
+import {
+  ArrowUpFilled,
+  Attach,
+  Copy,
+  Edit,
+  ThumbDislike,
+  ThumbDislikeFilled,
+  ThumbLike,
+  ThumbLikeFilled,
+} from "../ui/Icons";
 import styles from "./ChatMain.module.css";
-import { Icon } from "./Icons";
 import Markdown, { ThinkingIndicator } from "./Markdown";
 
 type Props = {
@@ -65,21 +64,6 @@ type ConversationLoadState = {
 
 function createId() {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
-}
-
-function readAsDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      if (typeof reader.result === "string") resolve(reader.result);
-      else reject(new Error(`Could not read ${file.name}.`));
-    };
-
-    reader.onerror = () => reject(new Error(`Could not read ${file.name}.`));
-
-    reader.readAsDataURL(file);
-  });
 }
 
 async function throwResponseError(response: Response): Promise<never> {
@@ -702,8 +686,6 @@ export default function ChatMain({ className, conversationId }: Props) {
     abortControllerRef.current?.abort();
   }
 
-  const MESSAGE_BUTTON_COLOR = "#8f8f8f";
-
   return (
     <section
       className={`${className ?? ""} ${styles.container} ${activeMessages.length === 0 ? styles.empty : ""} ${isLoadingConversation || hasConversationLoadError ? styles.hasConversationStatus : ""}`}
@@ -718,7 +700,7 @@ export default function ChatMain({ className, conversationId }: Props) {
             aria-label="Open sidebar"
             aria-expanded={expanded}
           >
-            <Icon name="ic_fluent_panel_left_default_28_regular" />
+            <PanelLeft />
           </button>
         )}
       </nav>
@@ -798,7 +780,7 @@ export default function ChatMain({ className, conversationId }: Props) {
                         aria-label="Copy message"
                         data-tooltip="Copy"
                       >
-                        <Copy3 color={MESSAGE_BUTTON_COLOR} />
+                        <Copy />
                       </button>
                       <button
                         onClick={() => startEditingPrompt(messageId, content)}
@@ -807,7 +789,7 @@ export default function ChatMain({ className, conversationId }: Props) {
                         data-tooltip="Edit"
                         disabled={isPending}
                       >
-                        <Edit2 color={MESSAGE_BUTTON_COLOR} />
+                        <Edit />
                       </button>
                     </div>
                   </div>
@@ -839,9 +821,7 @@ export default function ChatMain({ className, conversationId }: Props) {
                         aria-label="Copy message"
                         data-tooltip="Copy"
                       >
-                        {/* <Copy3 color={MESSAGE_BUTTON_COLOR} /> */}
-
-                        <Icon name="ic_fluent_copy_24_regular" />
+                        <Copy />
                       </button>
                       {/* Rating up */}
                       <button
@@ -855,9 +835,9 @@ export default function ChatMain({ className, conversationId }: Props) {
                         aria-pressed={message.rating === "up"}
                       >
                         {message?.rating === "up" ? (
-                          <ThumbsUp weight="Filled" color="black" />
+                          <ThumbLikeFilled />
                         ) : (
-                          <ThumbsUp color={MESSAGE_BUTTON_COLOR} />
+                          <ThumbLike />
                         )}
                       </button>
                       {/* Rating down */}
@@ -872,9 +852,9 @@ export default function ChatMain({ className, conversationId }: Props) {
                         aria-pressed={message.rating === "down"}
                       >
                         {message?.rating === "down" ? (
-                          <ThumbsDown weight="Filled" color="black" />
+                          <ThumbDislikeFilled />
                         ) : (
-                          <ThumbsDown color={MESSAGE_BUTTON_COLOR} />
+                          <ThumbDislike />
                         )}
                       </button>
                     </div>
@@ -948,7 +928,7 @@ export default function ChatMain({ className, conversationId }: Props) {
               disabled={true}
               // disabled={isPending}
             >
-              <Paperclip />
+              <Attach />
             </button>
 
             {attachmentError && (
@@ -982,7 +962,7 @@ export default function ChatMain({ className, conversationId }: Props) {
                   <path d="M12 19V5m-6 6 6-6 6 6" />
                 </svg> */}
 
-                <ArrowUp />
+                <ArrowUpFilled />
               </button>
             )}
           </div>

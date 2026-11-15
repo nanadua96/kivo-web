@@ -122,7 +122,7 @@
 .chat-popover-menu button.chat-popover-delete {
   color: #dc2626;
 
-  & svg {
+  & svg path {
     fill: #dc2626;
   }
 }

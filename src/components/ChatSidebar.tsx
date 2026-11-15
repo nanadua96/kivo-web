@@ -31,14 +31,15 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PinTack, Sidebar2 } from "reicon-react";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useSidebar } from "@/store";
 import { useMessages } from "@/store/message.store";
+import { AddCircleFilled, PanelLeftDefault, Pin, PinFilled } from "@/ui";
 import { ChatPopover } from "./ChatPopover";
 import styles from "./ChatSidebar.module.css";
 import { DeleteConversationModal } from "./DeleteConversationModal";
 import { RenameConversationModal } from "./RenameConversationModal";
-import SearchModal from "./SearchModal";
 import { UserPopover } from "./UserPopover";
 
 const CONVERSATION_PAGE_SIZE = 20;
@@ -138,47 +139,34 @@ export default function ChatSidebar({ className }: Props) {
     conversationQuery.isFetchingNextPage,
   ]);
 
+  const queryKey = ["conversations"];
+
   const renameMutation = useMutation({
     mutationFn: async ({ id, newTitle }: { id: string; newTitle: string }) => {
-      console.log("WATCH ME", { id, newTitle });
       return api.post(`/api/v1/conversations/${id}/rename`, {
         title: newTitle,
       });
     },
-    // onMutate: (variables) => {
-    //   console.log('[conversation:rename] started', variables);
-    // },
-    onSuccess: (result, variables) => {
-      console.log("[conversation:rename] succeeded", { variables, result });
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
+
     onError: (error, variables) => {
-      console.error("[conversation:rename] failed", { variables, error });
+      // console.error("[conversation:rename] failed", { variables, error });
     },
-    // onSettled: (result, error, variables) => {
-    //   console.log('[conversation:rename] settled', {
-    //     variables,
-    //     result,
-    //     error,
-    //   });
-    // },
   });
 
   const pinMutation = useMutation({
     mutationFn: async (id: string) =>
       api.post(`/api/v1/conversations/${id}/pin`),
-    onMutate: (id) => {
-      console.log("[conversation:pin] started", { id });
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
-    onSuccess: (result, id) => {
-      console.log("[conversation:pin] succeeded", { id, result });
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
-    },
-    onError: (error, id) => {
-      console.error("[conversation:pin] failed", { id, error });
-    },
-    onSettled: (result, error, id) => {
-      console.log("[conversation:pin] settled", { id, result, error });
+
+    onError: () => {
+      toast.error("Something went wrong.");
     },
   });
 
@@ -186,23 +174,20 @@ export default function ChatSidebar({ className }: Props) {
     mutationFn: async (id: string) => {
       return api.delete(`/api/v1/conversations/${id}`);
     },
-    onMutate: (id) => {
-      console.log("[conversation:delete] started", { id });
+
+    onSuccess() {
+      queryClient.invalidateQueries({ queryKey });
     },
-    onSuccess: (result, id) => {
-      console.log("[conversation:delete] succeeded", { id, result });
-      void queryClient.invalidateQueries({ queryKey: ["conversations"] });
-    },
-    onError: (error, id) => {
-      console.error("[conversation:delete] failed", { id, error });
-    },
-    onSettled: (result, error, id) => {
-      console.log("[conversation:delete] settled", { id, result, error });
+
+    onError(error, id) {
+      // console.error("[conversation:delete] failed", { id, error });
     },
   });
 
   const router = useRouter();
+
   const pathname = usePathname();
+
   const selectedConversationId = pathname.startsWith("/c/")
     ? pathname.slice(3)
     : null;
@@ -210,16 +195,6 @@ export default function ChatSidebar({ className }: Props) {
   function handleChat(id: string) {
     router.push(`/c/${id}`);
   }
-
-  const closeSearch = useCallback(() => setIsSearchOpen(false), []);
-
-  const selectSearchResult = useCallback(
-    (id: string) => {
-      setIsSearchOpen(false);
-      router.push(`/c/${id}`);
-    },
-    [router],
-  );
 
   function handleNewChat() {
     clearMessages();
@@ -243,7 +218,7 @@ export default function ChatSidebar({ className }: Props) {
               className={styles.iconButton}
               aria-label="Collapse sidebar"
             >
-              <Sidebar2 />
+              <PanelLeftDefault />
             </button>
           </div>
         </header>
@@ -253,6 +228,7 @@ export default function ChatSidebar({ className }: Props) {
             type="button"
             className={styles.newChatButton}
           >
+            <AddCircleFilled />
             New chat
           </button>
         </section>
@@ -315,7 +291,7 @@ export default function ChatSidebar({ className }: Props) {
                           c.pinned ? "Unpin conversation" : "Pin conversation"
                         }
                       >
-                        <PinTack weight="Filled" />
+                        {c.pinned ? <PinFilled /> : <Pin />}
                       </div>
                     </span>
                   )}
@@ -327,40 +303,6 @@ export default function ChatSidebar({ className }: Props) {
                     onDelete={() => setConversationToDelete(c)}
                   />
                 </div>
-
-                {/* <div
-                  className={`${styles.conversationItemButtonGroup} ${c.pinned ? styles.pinnedConversationGroup : ''}`}
-                >
-                  <ChatPopover
-                    isPinned={c.pinned}
-                    onRename={() => setConversationToRename(c)}
-                    onPin={() => pinMutation.mutate(c.id)}
-                    onDelete={() => setConversationToDelete(c)}
-                  />
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      pinMutation.mutate(c.id);
-                    }}
-                    className={styles.conversationItemButton}
-                    data-pinned={c.pinned || undefined}
-                    aria-label={
-                      c.pinned ? 'Unpin conversation' : 'Pin conversation'
-                    }
-                    title={c.pinned ? 'Unpin conversation' : 'Pin conversation'}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      height="24px"
-                      viewBox="0 -960 960 960"
-                      width="24px"
-                      fill="#1f1f1f"
-                    >
-                      <path d="M640-760v280l68 68q6 6 9 13.5t3 15.5v23q0 17-11.5 28.5T680-320H520v234q0 17-11.5 28.5T480-46q-17 0-28.5-11.5T440-86v-234H280q-17 0-28.5-11.5T240-360v-23q0-8 3-15.5t9-13.5l68-68v-280q-17 0-28.5-11.5T280-800q0-17 11.5-28.5T320-840h320q17 0 28.5 11.5T680-800q0 17-11.5 28.5T640-760Z" />
-                    </svg>
-                  </button>
-                </div> */}
               </div>
             ))}
 

@@ -29,6 +29,7 @@ export default function SignInForm({ callbackUrl }: SignInFormProps) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [isDemoSubmitting, setIsDemoSubmitting] = useState(false);
+
   const form = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: "", password: "" },
@@ -41,6 +42,7 @@ export default function SignInForm({ callbackUrl }: SignInFormProps) {
       !callbackUrl.includes("\\")
         ? new URL(callbackUrl, window.location.origin)
         : null;
+
     const destination =
       requestedDestination?.origin === window.location.origin &&
       requestedDestination.pathname !== "/sign-in" &&
@@ -86,6 +88,7 @@ export default function SignInForm({ callbackUrl }: SignInFormProps) {
     try {
       const email = process.env.NEXT_PUBLIC_DEMO_EMAIL;
       const password = process.env.NEXT_PUBLIC_DEMO_PASSWORD;
+
       if (!email || !password) {
         throw new Error(
           "The demo account is not configured. Set NEXT_PUBLIC_DEMO_EMAIL and NEXT_PUBLIC_DEMO_PASSWORD.",
@@ -93,6 +96,7 @@ export default function SignInForm({ callbackUrl }: SignInFormProps) {
       }
 
       const response = await authClient.signIn.email({ email, password });
+
       if (response.error) {
         throw new Error(response.error.message ?? "Could not sign in to demo.");
       }

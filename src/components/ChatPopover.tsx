@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import "./ChatPopover.css";
 import { Edit2, MoreH, Pen, PinTack, Trash5 } from "reicon-react";
+import { Delete, Edit, MoreHorizontalFilled, Pin, PinFilled } from "@/ui";
 
 type Props = {
   onRename?: () => void;
@@ -152,7 +153,7 @@ export function ChatPopover({
           setIsOpen((prev) => !prev);
         }}
       >
-        <MoreH weight="Filled" />
+        <MoreHorizontalFilled />
       </button>
       {/* Menu */}
       {isOpen &&
@@ -173,7 +174,7 @@ export function ChatPopover({
               role="menuitem"
               onClick={() => handleAction(onRename)}
             >
-              <Pen />
+              <Edit />
               <span>Rename</span>
             </button>
 
@@ -182,33 +183,7 @@ export function ChatPopover({
               role="menuitem"
               onClick={() => handleAction(onPin)}
             >
-              <span>
-                <PinTack />
-                {/* {isPinned ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true"
-                    viewBox="0 0 24 24"
-                    height="24px"
-                    width="24px"
-                    fill="#1f1f1f"
-                  >
-                    <path d="M14,5H10V7.18L7.25,4.42Q7.13,4.3 7.06,4.15T7,3.85Q7,3.52 7.23,3.26T7.83,3H16q0.43,0 0.71,0.29T17,4q0,0.4-0.36,0.56Q16.28,4.72 16,5v6q0,0.42-0.29,0.71T15,12t-0.71-0.29Q14,11.43 14,11V5ZM11,22V16H7.4q-0.63,0-1-0.44T6.03,14.58q0-0.28 0.11-0.55T6.5,13.5L8,12V10.85L2.1,4.9Q1.83,4.63 1.81,4.21T2.1,3.5Q2.38,3.22 2.8,3.22T3.5,3.5L20.48,20.48q0.3,0.3 0.29,0.71T20.45,21.9q-0.3,0.28-0.7,0.29t-0.7-0.29L13.15,16H13v6q0,0.43-0.29,0.71T12,23t-0.71-0.29Q11,22.43 11,22ZM8.85,14h2.3l-1.1-1.1L10,12.85L8.85,14ZM12,9.17ZM10.05,12.9Z" />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true"
-                    viewBox="0 0 24 24"
-                    height="24px"
-                    width="24px"
-                    fill="#1f1f1f"
-                  >
-                    <path d="M16,5v7l1.7,1.7q0.15,0.15 0.23,0.34T18,14.43V15q0,0.42-0.29,0.71T17,16H13v5.85q0,0.42-0.29,0.71T12,22.85t-0.71-0.29T11,21.85V16H7q-0.42,0-0.71-0.29T6,15V14.43q0-0.2 0.08-0.39T6.3,13.7L8,12V5Q7.58,5 7.29,4.71T7,4Q7,3.57 7.29,3.29T8,3h8q0.43,0 0.71,0.29T17,4q0,0.42-0.29,0.71T16,5ZM8.85,14h6.3L14,12.85V5H10v7.85L8.85,14ZM12,14Z" />
-                  </svg>
-                )} */}
-              </span>
-
+              <span>{isPinned ? <PinFilled /> : <Pin />}</span>
               <span>{isPinned ? "Unpin" : "Pin"}</span>
             </button>
 
@@ -218,7 +193,7 @@ export function ChatPopover({
               className="chat-popover-delete"
               onClick={() => handleAction(onDelete)}
             >
-              <Trash5 size={24} />
+              <Delete />
               <span>Delete</span>
             </button>
           </div>,

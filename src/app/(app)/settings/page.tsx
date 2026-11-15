@@ -7,10 +7,10 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast, useSonner } from "sonner";
 import { z } from "zod";
-import { Icon } from "@/components/Icons";
 import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 import { useSidebar } from "@/store";
+import { PanelLeftDefault } from "@/ui";
 import Avatar from "@/ui/Avatar";
 import Button from "@/ui/Button";
 import IconButton from "@/ui/IconButton";
@@ -61,8 +61,6 @@ export default function SettingsPage() {
   const isBusy = isSavingName || isDeletingAccount || isDeletingChats;
   const email = session?.user.email ?? "";
   const displayName = session?.user.name?.trim() || "";
-
-  const { toasts } = useSonner();
 
   async function saveName(values: NameForm) {
     setActionError("");
@@ -156,7 +154,7 @@ export default function SettingsPage() {
             aria-label="Open sidebar"
             onClick={toggleSidebar}
           >
-            <Icon name="ic_fluent_panel_left_default_28_regular" />
+            <PanelLeftDefault />
           </IconButton>
         )}
         <div>

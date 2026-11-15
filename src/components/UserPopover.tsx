@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Gear, Logout3 } from "reicon-react";
 import { authClient } from "@/lib/auth-client";
+import { Settings, SignOut } from "@/ui";
 import Avatar from "@/ui/Avatar";
 import styles from "./UserPopover.module.css";
 
@@ -16,6 +17,8 @@ export function UserPopover() {
 
   const email = session?.user.email ?? "Guest";
   const name = session?.user.name?.trim();
+
+  const router = useRouter();
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -45,10 +48,13 @@ export function UserPopover() {
 
     try {
       const result = await authClient.signOut();
-      if (result.error) {
+
+      if (result.error)
         throw new Error(result.error.message ?? "Could not sign out.");
-      }
+
       setIsOpen(false);
+
+      router.replace("/sign-in");
     } catch (signOutError) {
       setError(
         signOutError instanceof Error
@@ -87,7 +93,7 @@ export function UserPopover() {
             role="menuitem"
             onClick={() => setIsOpen(false)}
           >
-            <Gear />
+            <Settings />
             <span>Settings</span>
           </Link>
 
@@ -98,7 +104,7 @@ export function UserPopover() {
             onClick={() => handleSignOut()}
             disabled={isSigningOut || !session}
           >
-            <Logout3 />
+            <SignOut />
             <span>{isSigningOut ? "Logging out..." : "Logout"}</span>
           </button>
 
