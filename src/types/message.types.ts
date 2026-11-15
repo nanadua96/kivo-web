@@ -12,7 +12,7 @@ export type Message = {
   text: string;
   createdAt: string;
   rating?: "up" | "down";
-  attachments?: MessageAttachment[]; //! Fix
+  attachments?: MessageAttachment[];
 };
 
 export type Messages = Message[];

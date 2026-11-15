@@ -5,15 +5,16 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast, useSonner } from "sonner";
 import { z } from "zod";
-import Button from "@/components/Button";
-import IconButton from "@/components/IconButton";
 import { Icon } from "@/components/Icons";
-import Input from "@/components/Input";
 import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 import { useSidebar } from "@/store";
 import Avatar from "@/ui/Avatar";
+import Button from "@/ui/Button";
+import IconButton from "@/ui/IconButton";
+import Input from "@/ui/Input";
 import styles from "./page.module.css";
 
 const nameSchema = z.object({
@@ -61,6 +62,8 @@ export default function SettingsPage() {
   const email = session?.user.email ?? "";
   const displayName = session?.user.name?.trim() || "";
 
+  const { toasts } = useSonner();
+
   async function saveName(values: NameForm) {
     setActionError("");
     setActionMessage("");
@@ -68,11 +71,14 @@ export default function SettingsPage() {
 
     try {
       const result = await authClient.updateUser({ name: values.name });
+
       if (result.error) {
         throw new Error(result.error.message ?? "Could not save your name.");
       }
+
       reset({ name: values.name });
-      setActionMessage("Your name has been saved.");
+
+      toast.success("Your name has been saved.");
     } catch (error) {
       setError("name", {
         message:
@@ -165,11 +171,6 @@ export default function SettingsPage() {
           noValidate
         >
           <section className={styles.card} aria-labelledby="profile-heading">
-            <div className={styles.sectionHeading}>
-              <h2 id="profile-heading">Profile</h2>
-              <p>Manage your account details.</p>
-            </div>
-
             <div className={styles.profile}>
               <Avatar name={displayName || email} size="lg" />
               <div className={styles.profileInfo}>
@@ -179,7 +180,6 @@ export default function SettingsPage() {
                       ? "Loading account..."
                       : "No email available")}
                 </strong>
-                <span>Email address</span>
               </div>
             </div>
 
@@ -263,9 +263,6 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {actionMessage && (
-              <output className={styles.success}>{actionMessage}</output>
-            )}
             {actionError && (
               <p className={styles.error} role="alert">
                 {actionError}
@@ -274,7 +271,7 @@ export default function SettingsPage() {
           </section>
         </form>
       </div>
-
+      {/* Modal */}
       {confirmAction && (
         <div className={styles.confirmBackdrop}>
           <section
@@ -312,9 +309,9 @@ export default function SettingsPage() {
                 className={styles.dangerButton}
                 disabled={isBusy}
                 onClick={() =>
-                  void (confirmAction === "account"
+                  confirmAction === "account"
                     ? deleteAccount()
-                    : deleteAllChats())
+                    : deleteAllChats()
                 }
               >
                 {isBusy ? "Please wait..." : "Confirm delete"}

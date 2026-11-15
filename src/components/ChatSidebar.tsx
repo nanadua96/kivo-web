@@ -420,7 +420,12 @@ export default function ChatSidebar({ className }: Props) {
           isPending={deleteMutation.isPending}
           onClose={() => setConversationToDelete(null)}
           onConfirm={async () => {
-            await deleteMutation.mutateAsync(conversationToDelete.id);
+            const deletedId = conversationToDelete.id;
+            await deleteMutation.mutateAsync(deletedId);
+            if (selectedConversationId === deletedId) {
+              clearMessages();
+              router.push("/c/new");
+            }
             setConversationToDelete(null);
           }}
         />

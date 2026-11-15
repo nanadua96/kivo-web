@@ -443,6 +443,12 @@
   opacity: 0;
 }
 
+@media (hover: none), (any-pointer: coarse) {
+  .senderBubbleButtonGroup {
+    opacity: 1;
+  }
+}
+
 .senderBubbleButtonGroup button {
   /* font-size: var(--14px);
   display: flex;
@@ -567,4 +573,12 @@
   &:hover {
     background-color: whitesmoke;
   }
+}
+
+.disclaimer {
+  margin-top: calc(var(--16px) * -1);
+  color: #777d87;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
 }

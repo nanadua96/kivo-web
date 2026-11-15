@@ -891,11 +891,14 @@ export default function ChatMain({ className, conversationId }: Props) {
       )}
 
       <div className={styles.inputContainer}>
-        {activeMessages.length === 0 && (
-          <div className="headline-wrapper">
-            <p className="headline">Start a new chat</p>
-          </div>
-        )}
+        {conversationId === "new" &&
+          activeMessages.length === 0 &&
+          conversationLoadState.conversationId === conversationId &&
+          conversationLoadState.status === "loaded" && (
+            <div className="headline-wrapper">
+              <p className="headline">Start a new chat</p>
+            </div>
+          )}
 
         {error && (
           <div className={styles.sendError} role="alert">
@@ -984,6 +987,11 @@ export default function ChatMain({ className, conversationId }: Props) {
             )}
           </div>
         </form>
+        {input.trim().length > 0 && (
+          <p className={styles.disclaimer}>
+            AI can make mistakes. Please check responses.
+          </p>
+        )}
       </div>
     </section>
   );

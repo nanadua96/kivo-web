@@ -67,9 +67,9 @@
   gap: 10px;
   margin-bottom: 24px;
   padding: 20px 16px;
-  border: 1px solid #eceef1;
+  /* border: 1px solid #eceef1; */
   border-radius: 11px;
-  background: #fafbfc;
+  /* background: #fafbfc; */
   text-align: center;
 }
 

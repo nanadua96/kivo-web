@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import Input from "@/components/Input";
 import { authClient } from "@/lib/auth-client";
+import Input from "@/ui/Input";
 import styles from "./sign-in.module.css";
 
 const signInSchema = z.object({
