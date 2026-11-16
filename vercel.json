@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/auth/:path*",
+      "destination": "https://kivo-api-navy.vercel.app/api/auth/:path*"
+    }
+  ]
+}
