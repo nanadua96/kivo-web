@@ -3,8 +3,11 @@ import type { Message, Messages } from "@/types/message.types";
 
 type MessagesState = {
   messages: Messages;
+  pendingConversationId: string | null;
 
   initMessages: (message: Messages) => void;
+  setPendingConversationId: (conversationId: string) => void;
+  consumePendingConversationId: (conversationId: string) => boolean;
   addMessage: (message: Message) => void;
   addMessages: (messages: Messages) => void;
   replaceMessagesAfter: (
@@ -18,10 +21,18 @@ type MessagesState = {
   clearMessages: () => void;
 };
 
-export const useMessages = create<MessagesState>((set) => ({
+export const useMessages = create<MessagesState>((set, get) => ({
   messages: [],
+  pendingConversationId: null,
 
   initMessages: (messages) => set({ messages }),
+  setPendingConversationId: (conversationId) =>
+    set({ pendingConversationId: conversationId }),
+  consumePendingConversationId: (conversationId) => {
+    const pendingConversationId = get().pendingConversationId;
+    if (pendingConversationId !== null) set({ pendingConversationId: null });
+    return pendingConversationId === conversationId;
+  },
 
   addMessage: (message) =>
     set((state) => ({ messages: [...state.messages, message] })),
@@ -82,5 +93,5 @@ export const useMessages = create<MessagesState>((set) => ({
       ),
     })),
 
-  clearMessages: () => set(() => ({ messages: [] })),
+  clearMessages: () => set({ messages: [], pendingConversationId: null }),
 }));

@@ -226,15 +226,22 @@ export default function ChatMain({ className, conversationId }: Props) {
   const retryRequestRef = useRef<RetryRequest | null>(null);
   const editRequestRef = useRef<EditRequest | null>(null);
   const activeAssistantMessageIdRef = useRef<string | null>(null);
+  const preservedConversationIdRef = useRef<string | null>(null);
   const previousConversationIdRef = useRef(conversationId);
 
   const [input, setInput] = useState("");
   const [editText, setEditText] = useState("");
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [conversationLoadState, setConversationLoadState] =
-    useState<ConversationLoadState>({
-      conversationId: "",
-      status: "loading",
+    useState<ConversationLoadState>(() => {
+      const hasPendingConversation =
+        conversationId !== "new" &&
+        useMessages.getState().pendingConversationId === conversationId;
+
+      return {
+        conversationId: hasPendingConversation ? conversationId : "",
+        status: hasPendingConversation ? "loaded" : "loading",
+      };
     });
 
   const [selectedAttachments, setSelectedAttachments] = useState<
@@ -264,15 +271,30 @@ export default function ChatMain({ className, conversationId }: Props) {
 
   const loadConversation = useCallback(async () => {
     messageLoadControllerRef.current?.abort();
-    const controller = new AbortController();
-    messageLoadControllerRef.current = controller;
-    clearMessages();
+    messageLoadControllerRef.current = null;
 
     if (conversationId === "new") {
+      preservedConversationIdRef.current = null;
+      clearMessages();
       setConversationLoadState({ conversationId, status: "loaded" });
       return;
     }
 
+    if (preservedConversationIdRef.current === conversationId) {
+      setConversationLoadState({ conversationId, status: "loaded" });
+      return;
+    }
+
+    preservedConversationIdRef.current = null;
+    if (useMessages.getState().consumePendingConversationId(conversationId)) {
+      preservedConversationIdRef.current = conversationId;
+      setConversationLoadState({ conversationId, status: "loaded" });
+      return;
+    }
+
+    const controller = new AbortController();
+    messageLoadControllerRef.current = controller;
+    clearMessages();
     setConversationLoadState({ conversationId, status: "loading" });
 
     try {
@@ -479,6 +501,9 @@ export default function ChatMain({ className, conversationId }: Props) {
             event.conversationId !== "new"
           ) {
             createdConversationId = event.conversationId;
+            useMessages
+              .getState()
+              .setPendingConversationId(event.conversationId);
             const retryRequest = retryRequestRef.current;
             if (retryRequest) {
               retryRequestRef.current = {
