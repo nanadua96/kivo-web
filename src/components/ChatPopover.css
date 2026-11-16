@@ -32,14 +32,18 @@
   /* background-color: r; */
 
   &:hover {
-    background-color: #dadada;
+    background-color: var(--conversation-item-icon-button-background-hover);
   }
 
   & svg {
-    fill: #adadad;
+    /* fill: #adadad; */
     /* fill: cadetblue; */
     width: 16px;
     height: 16px;
+  }
+
+  & svg path {
+    fill: var(--conversation-item-icon-button);
   }
 }
 

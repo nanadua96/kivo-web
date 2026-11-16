@@ -21,6 +21,7 @@
   border-right: 1px solid rgb(0 0 0 / 10%);
   /* background-color: var; */
   /* background: #fafafa; */
+  background-color: var(--background-sidebar);
 }
 
 .workspace {
@@ -75,9 +76,12 @@
     z-index: 1000;
     display: block;
     border: 0;
-    background: rgb(255 255 255 / 70%);
+    /* background: rgb(255 255 255 / 70%); */
     animation: backdropFadeIn 300ms ease-in-out;
     cursor: pointer;
+    /* background-color: red; */
+    /* backdrop-filter: blur(80px); */
+    background-color: rgba(255, 255, 255, 0.8);
   }
 }
 

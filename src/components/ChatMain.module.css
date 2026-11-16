@@ -277,8 +277,9 @@
     cursor: not-allowed;
     opacity: 0.55;
 
-    & svg {
-      stroke: #7f7f7f;
+    & svg path {
+      fill: var(--prompt-input-attachment-icon);
+      /* stroke: #7f7f7f; */
     }
   }
 
@@ -301,8 +302,9 @@
   place-items: center;
   margin-left: auto;
   border-radius: 50%;
-  background: #17191d;
-  color: #fff;
+  /* background: #17191d; */
+  background: var(--prompt-input-send-background);
+  /* color: #fff; */
   cursor: pointer;
   box-shadow: 0 2px 5px rgb(0 0 0 / 18%);
 
@@ -331,7 +333,7 @@
     stroke-width: 1.8; */
 
     & path {
-      fill: white;
+      fill: var(--prompt-input-send-icon);
     }
   }
 }
@@ -557,14 +559,23 @@
   gap: var(--8px);
   padding: var(--4px);
   border-radius: var(--8px);
+  background-color: var(--icon-button-background);
 
   & svg {
     width: var(--18px);
     height: var(--18px);
   }
 
+  & path {
+    fill: var(--icon-button-content);
+  }
+
   &:hover {
-    background-color: whitesmoke;
+    background-color: var(--icon-button-background-hover);
+  }
+
+  &:hover svg path {
+    fill: var(--icon-button-content-hover);
   }
 }
 

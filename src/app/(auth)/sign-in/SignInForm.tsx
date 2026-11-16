@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
+import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 import Input from "@/ui/Input";
 import styles from "./sign-in.module.css";
@@ -62,9 +64,12 @@ export default function SignInForm({ callbackUrl }: SignInFormProps) {
         password: values.password,
       });
 
+      console.log(response);
+
       if (response.error) {
         throw new Error(response.error.message ?? "Could not sign in.");
       }
+
       if (!response.data?.user) {
         throw new Error("Could not sign in. Please try again.");
       }
@@ -79,23 +84,54 @@ export default function SignInForm({ callbackUrl }: SignInFormProps) {
     }
   }
 
+  interface Credentials {
+    email: string;
+    password: string;
+  }
+
+  function generateCredentials(): Credentials {
+    const randomId = Math.random().toString(36).substring(2, 10);
+
+    const email: string = `demo${randomId}@email.com`;
+
+    const lowercase = "abcdefghijklmnopqrstuvwxyz";
+    const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const numbers = "0123456789";
+    const symbols = "!@#$%^&*";
+
+    const allChars = lowercase + uppercase + numbers + symbols;
+
+    const passwordChars: string[] = [
+      uppercase[Math.floor(Math.random() * uppercase.length)],
+      symbols[Math.floor(Math.random() * symbols.length)],
+    ];
+
+    for (let i = 0; i < 6; i++) {
+      passwordChars.push(allChars[Math.floor(Math.random() * allChars.length)]);
+    }
+
+    // Shuffle password characters
+    const password: string = passwordChars
+      .sort(() => Math.random() - 0.5)
+      .join("");
+
+    return { email, password };
+  }
+
   async function handleDemoSignIn() {
     if (isDemoSubmitting || form.formState.isSubmitting) return;
 
     setError("");
     setIsDemoSubmitting(true);
 
+    const credentials = generateCredentials();
+
     try {
-      const email = process.env.NEXT_PUBLIC_DEMO_EMAIL;
-      const password = process.env.NEXT_PUBLIC_DEMO_PASSWORD;
-
-      if (!email || !password) {
-        throw new Error(
-          "The demo account is not configured. Set NEXT_PUBLIC_DEMO_EMAIL and NEXT_PUBLIC_DEMO_PASSWORD.",
-        );
-      }
-
-      const response = await authClient.signIn.email({ email, password });
+      const response = await authClient.signUp.email({
+        email: credentials.email,
+        password: credentials.password,
+        name: "Demo User",
+      });
 
       if (response.error) {
         throw new Error(response.error.message ?? "Could not sign in to demo.");
@@ -104,8 +140,16 @@ export default function SignInForm({ callbackUrl }: SignInFormProps) {
         throw new Error("Could not sign in to demo. Please try again.");
       }
 
+      await api.post("/api/v1/conversations/sample-data");
+
       redirectAfterSignIn();
     } catch (signInError) {
+      // if (signInError.response) {
+      //   toast.error("Something went wrong");
+      // }
+
+      console.error(error);
+
       setError(
         signInError instanceof Error
           ? signInError.message

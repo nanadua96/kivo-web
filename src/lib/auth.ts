@@ -10,10 +10,6 @@ export const auth = betterAuth({
       : mongodbAdapter(db),
   advanced: {
     database: { joins: true },
-    crossSubDomainCookies: {
-      enabled: true,
-      domain: "vercel.app",
-    },
   },
   emailAndPassword: {
     enabled: true,

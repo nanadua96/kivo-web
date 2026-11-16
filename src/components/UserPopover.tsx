@@ -47,14 +47,28 @@ export function UserPopover() {
     setIsSigningOut(true);
 
     try {
-      const result = await authClient.signOut();
+      // const result = await authClient.signOut();
 
-      if (result.error)
-        throw new Error(result.error.message ?? "Could not sign out.");
+      // if (result.error)
+      //   throw new Error(result.error.message ?? "Could not sign out.");
 
-      setIsOpen(false);
+      // setIsOpen(false);
 
-      router.replace("/sign-in");
+      // router.replace("/sign-in");
+      // router.refresh();
+
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            setIsOpen(false);
+            router.replace("/sign-in");
+            router.refresh();
+          },
+          onError: (ctx) => {
+            setError(ctx.error.message ?? "Could not sign out.");
+          },
+        },
+      });
     } catch (signOutError) {
       setError(
         signOutError instanceof Error
