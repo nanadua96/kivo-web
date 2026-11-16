@@ -66,13 +66,35 @@ h6 {
   --accent: #3566f0;
 
   /* Colors */
-  --background-primary: #fafafa;
+  --background-primary: #f9f8f7;
+  /* --background-primary: #fafafa; */
   --content-primary: #2c2c2b;
   --content-primary-subtle: #9f9e9d;
   --conversation-item-selected: #eae8e5;
   --conversation-item-selected-hover: #e3e1de;
+  --conversation-item-icon-button: #777674;
+  --conversation-item-icon-button-background-hover: #cecbc8;
   --user-message-background: #edebe8;
   --icon-button: #edebe8;
+  --background-sidebar: var(--background-primary);
+  /* --background-sidebar: #fafafa; */
+  /* --message-icon: #7b7a79; */
+  --prompt-input-background: white;
+  --prompt-input-attachment-background: white;
+  --prompt-input-attachment-icon: rgb(139, 139, 139);
+  --prompt-input-send-background: black;
+  --prompt-input-send-icon: white;
+  --prompt-input-text: black;
+  --prompt-input-placeholder-text: #a1a1a0;
+
+  --icon-button-background: transparent;
+  --icon-button-background-hover: #eeece9;
+  --icon-button-content: #7b7a79;
+  --icon-button-content-hover: #2c2c2b;
+
+  --markdown-heading-color: #171717;
+  --markdown-paragraph-color: red;
+  --markdown-blockquote-color: #5a606b;
 
   /* Sizes */
   --2px: calc(2rem / 16);

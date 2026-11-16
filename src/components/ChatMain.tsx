@@ -732,8 +732,9 @@ export default function ChatMain({ className, conversationId }: Props) {
 
               const { id, role, content } = message;
 
-              // User bubble
+              // User
               if (role === "user") {
+                // User edit message
                 if (editingMessageId === messageId) {
                   return (
                     <form
@@ -768,7 +769,7 @@ export default function ChatMain({ className, conversationId }: Props) {
                     </form>
                   );
                 }
-
+                // User message
                 return (
                   <div key={id} className={styles.senderBubbleWrapper}>
                     <div className={styles.senderBubble}>
@@ -798,11 +799,13 @@ export default function ChatMain({ className, conversationId }: Props) {
                   </div>
                 );
               }
-
+              // Assistant
               if (message.role === "assistant") {
                 return (
                   <div key={id} className={styles.markdownBody}>
+                    {/* Markdown */}
                     <Markdown>{message.content}</Markdown>
+                    {/* Stream error */}
                     {stoppedMessageId === id && (
                       <div className={styles.stoppedNotice}>
                         <span>Generation stopped.</span>
@@ -816,51 +819,50 @@ export default function ChatMain({ className, conversationId }: Props) {
                       </div>
                     )}
                     {/* Button group */}
-                    <div className={styles.messageButtonGroup}>
-                      {/* Copy */}
-                      <button
-                        onClick={() => handleCopy(message.content)}
-                        type="button"
-                        aria-label="Copy message"
-                        data-tooltip="Copy"
-                      >
-                        <Copy />
-                      </button>
-                      {/* Rating up */}
-                      <button
-                        onClick={() => {
-                          if (messageId) rateMessage(messageId, "up");
-                        }}
-                        disabled={!messageId}
-                        type="button"
-                        aria-label="Rate response positively"
-                        data-tooltip="Good response"
-                        aria-pressed={message.rating === "up"}
-                      >
-                        {message?.rating === "up" ? (
-                          <ThumbLikeFilled />
-                        ) : (
-                          <ThumbLike />
-                        )}
-                      </button>
-                      {/* Rating down */}
-                      <button
-                        onClick={() => {
-                          if (messageId) rateMessage(messageId, "down");
-                        }}
-                        disabled={!messageId}
-                        type="button"
-                        aria-label="Rate response negatively"
-                        data-tooltip="Bad response"
-                        aria-pressed={message.rating === "down"}
-                      >
-                        {message?.rating === "down" ? (
-                          <ThumbDislikeFilled />
-                        ) : (
-                          <ThumbDislike />
-                        )}
-                      </button>
-                    </div>
+                    {!isPending && (
+                      <div className={styles.messageButtonGroup}>
+                        <button
+                          onClick={() => handleCopy(message.content)}
+                          type="button"
+                          aria-label="Copy message"
+                          data-tooltip="Copy"
+                        >
+                          <Copy />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (messageId) rateMessage(messageId, "up");
+                          }}
+                          disabled={!messageId}
+                          type="button"
+                          aria-label="Rate response positively"
+                          data-tooltip="Good response"
+                          aria-pressed={message.rating === "up"}
+                        >
+                          {message?.rating === "up" ? (
+                            <ThumbLikeFilled />
+                          ) : (
+                            <ThumbLike />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (messageId) rateMessage(messageId, "down");
+                          }}
+                          disabled={!messageId}
+                          type="button"
+                          aria-label="Rate response negatively"
+                          data-tooltip="Bad response"
+                          aria-pressed={message.rating === "down"}
+                        >
+                          {message?.rating === "down" ? (
+                            <ThumbDislikeFilled />
+                          ) : (
+                            <ThumbDislike />
+                          )}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               }
