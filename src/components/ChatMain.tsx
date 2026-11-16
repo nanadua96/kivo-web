@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { API_BASE_PATH, api } from "@/lib/api";
 import { useSidebar } from "@/store";
 import { useMessages } from "@/store/message.store";
 import type { Messages } from "@/types/message.types";
@@ -453,7 +453,7 @@ export default function ChatMain({ className, conversationId }: Props) {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/conversations`,
+        `${API_BASE_PATH}/api/v1/conversations`,
         {
           method: "POST",
           credentials: "include",
@@ -543,7 +543,7 @@ export default function ChatMain({ className, conversationId }: Props) {
     controller: AbortController,
   ) {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/messages/${encodeURIComponent(request.messageId)}/edit`,
+      `${API_BASE_PATH}/api/v1/messages/${encodeURIComponent(request.messageId)}/edit`,
       {
         method: "PATCH",
         credentials: "include",
