@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -26,7 +25,6 @@ type SignInFormProps = {
 };
 
 export default function SignInForm({ callbackUrl }: SignInFormProps) {
-  const router = useRouter();
   const [error, setError] = useState("");
   const [isDemoSubmitting, setIsDemoSubmitting] = useState(false);
 
@@ -49,8 +47,7 @@ export default function SignInForm({ callbackUrl }: SignInFormProps) {
       requestedDestination.pathname !== "/sign-up"
         ? `${requestedDestination.pathname}${requestedDestination.search}${requestedDestination.hash}`
         : "/";
-    router.replace(destination);
-    router.refresh();
+    window.location.replace(destination);
   }
 
   async function handleSubmit(values: SignInValues) {

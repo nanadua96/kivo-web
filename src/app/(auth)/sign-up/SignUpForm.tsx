@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -27,7 +26,6 @@ type SignUpFormProps = {
 };
 
 export default function SignUpForm({ callbackUrl }: SignUpFormProps) {
-  const router = useRouter();
   const [error, setError] = useState("");
   const form = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
@@ -63,8 +61,7 @@ export default function SignUpForm({ callbackUrl }: SignUpFormProps) {
         requestedDestination.pathname !== "/sign-up"
           ? `${requestedDestination.pathname}${requestedDestination.search}${requestedDestination.hash}`
           : "/";
-      router.replace(destination);
-      router.refresh();
+      window.location.replace(destination);
     } catch (signUpError) {
       setError(
         signUpError instanceof Error
