@@ -172,6 +172,9 @@ export default function ChatSidebar({ className }: Props) {
 
   function handleNewChat() {
     clearMessages();
+    if (expanded && window.matchMedia("(max-width: 800px)").matches) {
+      toggleSidebar();
+    }
     router.push("/c/new");
   }
 

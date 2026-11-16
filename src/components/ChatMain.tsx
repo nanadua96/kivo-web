@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { API_BASE_PATH, api } from "@/lib/api";
@@ -201,7 +200,6 @@ async function readEventStream(
 }
 
 export default function ChatMain({ className, conversationId }: Props) {
-  const router = useRouter();
   const queryClient = useQueryClient();
 
   const expanded = useSidebar((state) => state.expanded);
@@ -216,6 +214,7 @@ export default function ChatMain({ className, conversationId }: Props) {
   );
   const updateMessage = useMessages((state) => state.updateMessage);
   const setMessageRating = useMessages((state) => state.setMessageRating);
+  const replaceMessageId = useMessages((state) => state.replaceMessageId);
   const appendMessageContent = useMessages(
     (state) => state.appendMessageContent,
   );
@@ -232,14 +231,16 @@ export default function ChatMain({ className, conversationId }: Props) {
   const [input, setInput] = useState("");
   const [editText, setEditText] = useState("");
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [activeConversationId, setActiveConversationId] =
+    useState(conversationId);
   const [conversationLoadState, setConversationLoadState] =
     useState<ConversationLoadState>(() => {
       const hasPendingConversation =
-        conversationId !== "new" &&
-        useMessages.getState().pendingConversationId === conversationId;
+        activeConversationId !== "new" &&
+        useMessages.getState().pendingConversationId === activeConversationId;
 
       return {
-        conversationId: hasPendingConversation ? conversationId : "",
+        conversationId: hasPendingConversation ? activeConversationId : "",
         status: hasPendingConversation ? "loaded" : "loading",
       };
     });
@@ -253,18 +254,18 @@ export default function ChatMain({ className, conversationId }: Props) {
     input.trim().length === 0 && selectedAttachments.length === 0;
 
   const activeMessages =
-    conversationLoadState.conversationId === conversationId &&
+    conversationLoadState.conversationId === activeConversationId &&
     conversationLoadState.status === "loaded"
       ? messages
       : [];
 
   const isLoadingConversation =
-    conversationId !== "new" &&
-    (conversationLoadState.conversationId !== conversationId ||
+    activeConversationId !== "new" &&
+    (conversationLoadState.conversationId !== activeConversationId ||
       conversationLoadState.status === "loading");
 
   const hasConversationLoadError =
-    conversationLoadState.conversationId === conversationId &&
+    conversationLoadState.conversationId === activeConversationId &&
     conversationLoadState.status === "error";
 
   const selectedAttachmentsRef = useRef<SelectedAttachment[]>([]);
@@ -273,52 +274,74 @@ export default function ChatMain({ className, conversationId }: Props) {
     messageLoadControllerRef.current?.abort();
     messageLoadControllerRef.current = null;
 
-    if (conversationId === "new") {
+    if (activeConversationId === "new") {
       preservedConversationIdRef.current = null;
       clearMessages();
-      setConversationLoadState({ conversationId, status: "loaded" });
+      setConversationLoadState({
+        conversationId: activeConversationId,
+        status: "loaded",
+      });
       return;
     }
 
-    if (preservedConversationIdRef.current === conversationId) {
-      setConversationLoadState({ conversationId, status: "loaded" });
+    if (preservedConversationIdRef.current === activeConversationId) {
+      setConversationLoadState({
+        conversationId: activeConversationId,
+        status: "loaded",
+      });
       return;
     }
 
     preservedConversationIdRef.current = null;
-    if (useMessages.getState().consumePendingConversationId(conversationId)) {
-      preservedConversationIdRef.current = conversationId;
-      setConversationLoadState({ conversationId, status: "loaded" });
+    if (
+      useMessages
+        .getState()
+        .consumePendingConversationId(activeConversationId)
+    ) {
+      preservedConversationIdRef.current = activeConversationId;
+      setConversationLoadState({
+        conversationId: activeConversationId,
+        status: "loaded",
+      });
       return;
     }
 
     const controller = new AbortController();
     messageLoadControllerRef.current = controller;
     clearMessages();
-    setConversationLoadState({ conversationId, status: "loading" });
+    setConversationLoadState({
+      conversationId: activeConversationId,
+      status: "loading",
+    });
 
     try {
       const { data } = await api.get<Messages>(
-        `/api/v1/conversations/${conversationId}/messages`,
+        `/api/v1/conversations/${activeConversationId}/messages`,
         {
           signal: controller.signal,
         },
       );
       if (!controller.signal.aborted) {
         initMessages(data);
-        setConversationLoadState({ conversationId, status: "loaded" });
+        setConversationLoadState({
+          conversationId: activeConversationId,
+          status: "loaded",
+        });
       }
     } catch (error: unknown) {
       if (!controller.signal.aborted) {
         console.error("Could not load conversation messages.", error);
-        setConversationLoadState({ conversationId, status: "error" });
+        setConversationLoadState({
+          conversationId: activeConversationId,
+          status: "error",
+        });
       }
     } finally {
       if (messageLoadControllerRef.current === controller) {
         messageLoadControllerRef.current = null;
       }
     }
-  }, [clearMessages, conversationId, initMessages]);
+  }, [activeConversationId, clearMessages, initMessages]);
 
   useEffect(() => {
     loadConversation();
@@ -368,8 +391,8 @@ export default function ChatMain({ className, conversationId }: Props) {
   }
 
   useEffect(() => {
-    if (previousConversationIdRef.current === conversationId) return;
-    previousConversationIdRef.current = conversationId;
+    if (previousConversationIdRef.current === activeConversationId) return;
+    previousConversationIdRef.current = activeConversationId;
     abortControllerRef.current?.abort();
     abortControllerRef.current = null;
     retryRequestRef.current = null;
@@ -379,7 +402,7 @@ export default function ChatMain({ className, conversationId }: Props) {
     setEditText("");
     setIsPending(false);
     setError("");
-  }, [conversationId]);
+  }, [activeConversationId]);
 
   useEffect(() => () => abortControllerRef.current?.abort(), []);
 
@@ -435,7 +458,7 @@ export default function ChatMain({ className, conversationId }: Props) {
         assistantMessageId,
         payload: {
           message: userMessageText,
-          conversationId,
+          conversationId: activeConversationId,
           model: "qwen/qwen3.8-27b",
         },
       };
@@ -472,6 +495,8 @@ export default function ChatMain({ className, conversationId }: Props) {
     setError("");
 
     let createdConversationId: string | null = null;
+    let assistantMessageId = request.assistantMessageId;
+    let receivedAssistantMessageId = false;
 
     try {
       const response = await fetch(
@@ -495,7 +520,7 @@ export default function ChatMain({ className, conversationId }: Props) {
         controller.signal,
         (event) => {
           if (
-            conversationId === "new" &&
+            activeConversationId === "new" &&
             !createdConversationId &&
             typeof event.conversationId === "string" &&
             event.conversationId !== "new"
@@ -519,9 +544,31 @@ export default function ChatMain({ className, conversationId }: Props) {
             });
           }
 
+          if (
+            !receivedAssistantMessageId &&
+            typeof event.id === "string" &&
+            event.id
+          ) {
+            receivedAssistantMessageId = true;
+            if (assistantMessageId !== event.id) {
+              const previousMessageId = assistantMessageId;
+              replaceMessageId(previousMessageId, event.id);
+              assistantMessageId = event.id;
+
+              const retryRequest = retryRequestRef.current;
+              if (retryRequest?.assistantMessageId === previousMessageId) {
+                retryRequestRef.current = {
+                  ...retryRequest,
+                  assistantMessageId: event.id,
+                };
+              }
+            }
+            activeAssistantMessageIdRef.current = event.id;
+          }
+
           const content = getStreamContent(event);
           if (content) {
-            appendMessageContent(request.assistantMessageId, content);
+            appendMessageContent(assistantMessageId, content);
           }
         },
       );
@@ -533,7 +580,13 @@ export default function ChatMain({ className, conversationId }: Props) {
       if (receivedDoneEvent) {
         retryRequestRef.current = null;
         if (createdConversationId && !controller.signal.aborted) {
-          router.replace(`/c/${encodeURIComponent(createdConversationId)}`);
+          const path = `/c/${encodeURIComponent(createdConversationId)}`;
+          window.history.replaceState(null, "", path);
+          setConversationLoadState({
+            conversationId: createdConversationId,
+            status: "loaded",
+          });
+          setActiveConversationId(createdConversationId);
         }
       }
     } catch (caught: unknown) {
@@ -901,9 +954,9 @@ export default function ChatMain({ className, conversationId }: Props) {
       )}
 
       <div className={styles.inputContainer}>
-        {conversationId === "new" &&
+        {activeConversationId === "new" &&
           activeMessages.length === 0 &&
-          conversationLoadState.conversationId === conversationId &&
+          conversationLoadState.conversationId === activeConversationId &&
           conversationLoadState.status === "loaded" && (
             <div className="headline-wrapper">
               <p className="headline">Start a new chat</p>

@@ -347,11 +347,11 @@
   flex-direction: column;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: #b8b8b8 transparent;
+  scrollbar-color: #c8c9cd transparent;
   scrollbar-width: thin;
 
   &::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
   }
 
   &::-webkit-scrollbar-track {
@@ -360,7 +360,18 @@
 
   &::-webkit-scrollbar-thumb {
     border-radius: 999px;
-    background: #b8b8b8;
+    border: 2px solid transparent;
+    background: #c8c9cd;
+    background-clip: padding-box;
+  }
+
+  &:hover {
+    scrollbar-color: #a7a9af transparent;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background: #a7a9af;
+    background-clip: padding-box;
   }
 }
 

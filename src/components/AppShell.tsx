@@ -17,6 +17,7 @@ export default function AppShell({ children }: Props) {
 
   useEffect(() => {
     const mobileQuery = window.matchMedia("(max-width: 800px)");
+    const visualViewport = window.visualViewport;
 
     const initializeSidebar = () => {
       if (mobileQuery.matches && useSidebar.getState().expanded) {
@@ -26,9 +27,25 @@ export default function AppShell({ children }: Props) {
       setInitialized(true);
     };
 
+    const updateViewportHeight = () => {
+      document.documentElement.style.setProperty(
+        "--app-height",
+        `${visualViewport?.height ?? window.innerHeight}px`,
+      );
+    };
+
     initializeSidebar();
+    updateViewportHeight();
     mobileQuery.addEventListener("change", initializeSidebar);
-    return () => mobileQuery.removeEventListener("change", initializeSidebar);
+    visualViewport?.addEventListener("resize", updateViewportHeight);
+    window.addEventListener("resize", updateViewportHeight);
+
+    return () => {
+      mobileQuery.removeEventListener("change", initializeSidebar);
+      visualViewport?.removeEventListener("resize", updateViewportHeight);
+      window.removeEventListener("resize", updateViewportHeight);
+      document.documentElement.style.removeProperty("--app-height");
+    };
   }, []);
 
   return (

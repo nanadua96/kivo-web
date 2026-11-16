@@ -5,5 +5,5 @@ type Props = {
 };
 
 export function ChatContainer({ conversationId }: Props) {
-  return <ChatMain conversationId={conversationId} />;
+  return <ChatMain key={conversationId} conversationId={conversationId} />;
 }

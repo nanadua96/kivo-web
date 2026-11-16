@@ -8,6 +8,7 @@ type MessagesState = {
   initMessages: (message: Messages) => void;
   setPendingConversationId: (conversationId: string) => void;
   consumePendingConversationId: (conversationId: string) => boolean;
+  replaceMessageId: (id: string, nextId: string) => void;
   addMessage: (message: Message) => void;
   addMessages: (messages: Messages) => void;
   replaceMessagesAfter: (
@@ -33,6 +34,12 @@ export const useMessages = create<MessagesState>((set, get) => ({
     if (pendingConversationId !== null) set({ pendingConversationId: null });
     return pendingConversationId === conversationId;
   },
+  replaceMessageId: (id, nextId) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.id === id ? { ...message, id: nextId } : message,
+      ),
+    })),
 
   addMessage: (message) =>
     set((state) => ({ messages: [...state.messages, message] })),
